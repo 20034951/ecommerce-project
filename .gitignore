@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Docker volumes
+mysql_data/
+
+# .env files
+.env
+
+# React build output
+frontend-store/build/
+frontend-admin/build/
