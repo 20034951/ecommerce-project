@@ -8,8 +8,17 @@ import { getRedisClient } from "../utils/redisClient.js";
  */
 export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
     return async (req, res, next) => {
+
+        let redisClient;
+
+        try{
+            redisClient = getRedisClient();
+        } catch (err) {
+            console.warn('Redis Client not initialized - proceeding without cache');
+            return next();
+        }
+
         try {
-            const redisClient = getRedisClient();
             const cacheKey = typeof cacheKeyOrFunction === 'function' ? cacheKeyOrFunction(req) : cacheKeyOrFunction;
             const cached = await redisClient.get(cacheKey);
 
@@ -26,7 +35,7 @@ export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
                     await redisClient.setEx(cacheKey, ttlSeconds, JSON.stringify(data));
                     console.log(`Cache set: ${cacheKey}`);
                 } catch (err) {
-                    console.log('Error setting cache: ', err);
+                    console.error('Error setting cache: ', err.message);
                 }
                 return originalJson(data);
             };

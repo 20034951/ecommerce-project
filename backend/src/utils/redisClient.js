@@ -3,6 +3,19 @@ import { createClient } from 'redis';
 let redisClient;
 
 export const initRedis = async () => {
+
+    if(process.env.NODE_ENV === 'test'){
+        console.log("[Redis Mock] using in-memory mock client for tests");
+        redisClient = {
+            get: async () => null,
+            setEx: async () => {},
+            del: async () => {},
+            connect: async () => {},
+            disconnect: async () => {}
+        };
+        return redisClient;
+    }
+
     if(!redisClient){
         redisClient = createClient({
             url: process.env.REDIS_URL || 'redis://redis:6379'
@@ -10,7 +23,7 @@ export const initRedis = async () => {
         redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
         await redisClient.connect();
-        console.log('Redis connected');
+        redisClient.on('connect', () => console.log('Connected to Redis Client'));
     }
     return redisClient;
 };
