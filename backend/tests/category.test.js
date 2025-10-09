@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../src/app.js'; // main express file
-import db from '../src/models/index.js';
 
 describe('Category API', () => {
     let categoryId;
