@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
@@ -8,6 +9,7 @@ import authRoutes from "./routes/register.js";
 dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use("/api", authRoutes);
 
