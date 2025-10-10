@@ -1,44 +1,48 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
+
+// Import routes dynamically
 import authRoutes from "./routes/register.js";
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use("/api", authRoutes);
 
+// Enable CORS globally for all routes
+app.use(cors());
+app.use(express.json()); // Middleware to parse JSON request bodies
+
+// Health check route
 app.get("/", (req, res) => {
   res.json({ message: "Backend running" });
 });
 
-app.use("/api/categories", categoryRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/roles", roleRoutes);
-app.use("/api/users", userRoutes);
-
-// Error middleware (always at the end)
-app.use(errorHandler);
-
 const startServer = async () => {
   try {
+    // Initialize Redis connection
     await initRedis();
 
+    // Dynamically import routes for categories, products, roles, and users
     const categoryRoutes = (await import("./routes/category.js")).default;
     const productRoutes = (await import("./routes/product.js")).default;
+    const roleRoutes = (await import("./routes/role.js")).default;
+    const userRoutes = (await import("./routes/user.js")).default;
 
-    app.use("/api/categories", categoryRoutes);
+    // Use routes
+    app.use("/api", authRoutes);
+    app.use("/api/categories", categoryRoutes); // Now this should work
     app.use("/api/products", productRoutes);
+    app.use("/api/roles", roleRoutes);
+    app.use("/api/users", userRoutes);
 
-    db.sequelize.sync({ alter: true }); //warning: 'alter' updates tables, 'force' deletes and recreates
+    // Synchronize DB (Alter tables if needed)
+    await db.sequelize.sync({ alter: true });
 
-    // Error middleware (always at the end)
-    app.use(errorHandler);
-
+    // Start the backend server
     app.listen(process.env.PORT, "0.0.0.0", () => {
       console.log(`Backend running on port ${process.env.PORT}`);
     });
