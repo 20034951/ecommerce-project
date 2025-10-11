@@ -1,19 +1,18 @@
-FROM node:20
+FROM node:22-alpine
 
 WORKDIR /app
+
+# Install netcat and mysql-client first
+RUN apk add --no-cache netcat-openbsd mysql-client
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-RUN chmod +x wait-mysql.sh
-
-# Install netcat to check MySQL port in case we want to remove this part we need to modify wait-mysql.sh file
-RUN apt-get update && \
-    apt-get install -y netcat-openbsd default-mysql-client && \
-    rm -rf /var/lib/apt/lists/*
+# Convert line endings and give execute permissions to the script
+RUN sed -i 's/\r$//' wait-mysql.sh && chmod +x wait-mysql.sh
 
 EXPOSE 5005
 #CMD ["npm", "run", "dev"]
-CMD ["./wait-mysql.sh"]
+CMD ["sh", "./wait-mysql.sh"]
