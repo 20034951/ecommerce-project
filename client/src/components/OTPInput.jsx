@@ -17,7 +17,7 @@ export default function () {
         recipient_email: email,
       })
       .then(() => setDisable(true))
-      .then(() => alert("A new OTP has succesfully been sent to your email."))
+      .then(() => alert("Un codigo OTP ha sido enviado a tu correo."))
       .then(() => setTimer(60))
       .catch(console.log);
   }
@@ -28,7 +28,7 @@ export default function () {
       return;
     }
     alert(
-      "The code you have entered is not correct, try again or re-send the link"
+      "El codigo ingresado es incorrecto, por favor intenta de nuevo"
     );
     return;
   }
@@ -52,10 +52,10 @@ export default function () {
         <div className="mx-auto flex w-full max-w-md flex-col space-y-16">
           <div className="flex flex-col items-center justify-center text-center space-y-2">
             <div className="font-semibold text-3xl">
-              <p>Email Verification</p>
+              <p>Verificacion de Correo</p>
             </div>
             <div className="flex flex-row text-sm font-medium text-gray-400">
-              <p>We have sent a code to your email {email}</p>
+              <p>Hemos enviado un codigo a tu correo {email}</p>
             </div>
           </div>
 

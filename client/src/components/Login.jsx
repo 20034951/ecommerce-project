@@ -21,7 +21,7 @@ export default function () {
         .catch(console.log);
       return;
     }
-    return alert("Please enter your email");
+    return alert("Ingresa tu correo");
   }
   return (
     <div>
@@ -128,7 +128,7 @@ export default function () {
                       className="form-check-label inline-block text-gray-800"
                       htmlFor="exampleCheck2"
                     >
-                      Remember me
+                      Recuerdame
                     </label>
                   </div>
                   <a
@@ -136,7 +136,7 @@ export default function () {
                     onClick={() => nagigateToOtp()}
                     className="text-gray-800"
                   >
-                    Forgot password?
+                    Olvide mi Contrasena
                   </a>
                 </div>
 
@@ -148,12 +148,12 @@ export default function () {
                     Login
                   </button>
                   <p className="text-sm font-semibold mt-2 pt-1 mb-0">
-                    Don't have an account?
+                    No tienes una cuenta?
                     <a
                       href="#!"
                       className="text-red-600 hover:text-red-700 focus:text-red-700 transition duration-200 ease-in-out"
                     >
-                      Register
+                      Registro
                     </a>
                   </p>
                 </div>
