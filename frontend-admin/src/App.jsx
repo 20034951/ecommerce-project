@@ -3,7 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './auth/AuthProvider.jsx';
-import { router } from './router/index.js';
+import { router } from './router/index.jsx';
 import { Spinner } from './components/ui';
 import './App.css';
 

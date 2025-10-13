@@ -22,3 +22,11 @@ docker compose up --build
 - **Backend** →         http://localhost:5005 →     responde {"message":"Backend running"}
 - **Frontend Store** →  http://localhost:3000
 - **Frontend Admin** →  http://localhost:3001
+- **Redis** →           localhost:6379
+```
+
+## Produccion
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```

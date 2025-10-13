@@ -33,7 +33,7 @@ router.get('/:id',
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
         if(!role){
-            throw new HttpError('Role not found', 404);
+            throw new HttpError(404, 'Role not found');
         }
         res.status(200).json(role);
     })
@@ -48,13 +48,13 @@ router.post('/',
         const { name, description } = req.body;
 
         if(!name){
-            throw new HttpError('Role name is required', 400);
+            throw new HttpError(400, 'Role name is required');
         }
 
         const existing = await Role.findOne( { where: {name} } );
 
         if(existing) {
-            throw new HttpError('Role name already exists', 400);
+            throw new HttpError(400, 'Role name already exists');
         }
 
         const role = await Role.create( { name, description } );
@@ -75,7 +75,7 @@ router.put('/:id',
         const role = await Role.findByPk(req.params.id);
 
         if(!role){
-            throw new HttpError('Role not found', 400);
+            throw new HttpError(400, 'Role not found');
         }
 
         if(name) role.name = name;
@@ -94,7 +94,7 @@ router.delete('/:id',
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
         if(!role){
-            throw new HttpError('Role not found', 404);
+            throw new HttpError(404, 'Role not found');
         }
 
         await role.destroy();

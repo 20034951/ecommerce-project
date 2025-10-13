@@ -1,5 +1,5 @@
 export default class HttpError extends Error {
-    constructor(message, statusCode = 500){
+    constructor(statusCode = 500, message = 'Internal Server Error'){
         super(message);
         this.statusCode = statusCode;
 

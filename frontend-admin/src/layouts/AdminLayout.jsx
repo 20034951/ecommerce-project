@@ -2,8 +2,13 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
 import { AdminHeader } from '../components/layout/AdminHeader.jsx';
+import { TokenDebugger } from '../components/debug/TokenDebugger.jsx';
+import { useSimpleTokenManager } from '../hooks/useSimpleTokenManager.js';
 
 export function AdminLayout() {
+  // Activar el manejo automático del token
+  useSimpleTokenManager();
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -16,6 +21,9 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Token Debugger (solo en desarrollo) */}
+      <TokenDebugger />
     </div>
   );
 }

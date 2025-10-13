@@ -4,54 +4,110 @@ import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
+import seedDatabase from "./seedDatabase.js";
 
 dotenv.config();
 
 const app = express();
 
+// Configuración CORS para permitir frontend
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:5173',
+    'http://localhost:5174'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middlewares base
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Middleware para obtener IP real
+app.use((req, res, next) => {
+  req.clientIP = req.headers['x-forwarded-for'] || 
+                 req.headers['x-real-ip'] || 
+                 req.connection.remoteAddress || 
+                 req.socket.remoteAddress ||
+                 (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+                 req.ip;
+  next();
+});
 
 // Healthcheck
-app.get("/", (req, res) => res.json({ message: "Backend running" }));
+app.get("/", (req, res) => res.json({ 
+  message: "Backend running",
+  timestamp: new Date().toISOString(),
+  version: "1.0.0"
+}));
 
 const startServer = async () => {
   try {
-    // Redis (idealmente con fail-open adentro de initRedis)
-    await initRedis();
+    console.log('🚀 Iniciando servidor...');
+    
+    // Redis (opcional) - deshabilitado temporalmente
+    try {
+      console.log('⚠️ Redis deshabilitado temporalmente');
+    } catch (redisError) {
+      console.log('⚠️ Redis no disponible, continuando sin cache');
+    }
 
     // Import dinámico de rutas
     const categoryRoutes = (await import("./routes/category.js")).default;
     const productRoutes = (await import("./routes/product.js")).default;
-    const roleRoutes = (await import("./routes/role.js")).default;
     const userRoutes = (await import("./routes/user.js")).default;
     const authRoutes = (await import("./routes/register.js")).default;
 
     // Montar rutas
-    app.use("/api", authRoutes); // /api/register, etc.
+    app.use("/api/auth", authRoutes);
     app.use("/api/categories", categoryRoutes);
     app.use("/api/products", productRoutes);
-    app.use("/api/roles", roleRoutes);
-    app.use("/api/users", userRoutes); // <-- NECESARIA para /api/users
+    app.use("/api/users", userRoutes);
 
-    // Sincronizar BD (esperar a que termine)
+    // Ruta para poblar la base de datos (solo desarrollo)
+    if (process.env.NODE_ENV === 'development') {
+      app.post("/api/seed", async (req, res) => {
+        try {
+          await seedDatabase();
+          res.json({ message: "Base de datos poblada exitosamente" });
+        } catch (error) {
+          console.error('Error al poblar BD:', error);
+          res.status(500).json({ error: "Error al poblar la base de datos" });
+        }
+      });
+    }
+
+    // Sincronizar BD
+    console.log('🔄 Sincronizando base de datos...');
     await db.sequelize.sync({ alter: true });
+    console.log('✅ Base de datos sincronizada');
 
     // Error handler al final
     app.use(errorHandler);
 
     const port = process.env.PORT || 5005;
     app.listen(port, "0.0.0.0", () => {
-      console.log(`Backend running on port ${port}`);
+      console.log(`🌐 Backend ejecutándose en puerto ${port}`);
+      console.log(`📍 Acceso local: http://localhost:${port}`);
+      console.log(`📡 Variables de entorno cargadas: ${process.env.NODE_ENV || 'desarrollo'}`);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n💡 Para poblar la base de datos con datos de prueba:');
+        console.log(`   POST http://localhost:${port}/api/seed`);
+      }
     });
+    
   } catch (err) {
-    console.error("Error during initialization:", err);
+    console.error("❌ Error durante la inicialización:", err);
+    process.exit(1);
   }
 };
 
-if (process.env.NODE_ENV !== "test") {
-  startServer();
-}
+startServer();
 
 export default app;

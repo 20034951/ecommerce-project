@@ -11,7 +11,7 @@ export const authApi = {
    * @returns {Promise<Object>} - Token y datos del usuario
    */
   login: async (credentials) => {
-    const response = await httpClient.post('/api/auth/admin/login', credentials);
+    const response = await httpClient.post('/api/auth/login', credentials);
     
     // Guardar tokens después del login exitoso
     if (response.accessToken) {
@@ -45,7 +45,9 @@ export const authApi = {
    * @returns {Promise<Object>} - Resultado de la operación
    */
   forgotPassword: async (email) => {
-    return httpClient.post('/api/auth/forgot-password', { email });
+    // TODO: Implementar en backend
+    throw new Error('Función de recuperación de contraseña no implementada en el backend');
+    // return httpClient.post('/api/auth/forgot-password', { email });
   },
 
   /**
@@ -54,7 +56,9 @@ export const authApi = {
    * @returns {Promise<Object>} - Resultado de la operación
    */
   resetPassword: async (resetData) => {
-    return httpClient.post('/api/auth/reset-password', resetData);
+    // TODO: Implementar en backend
+    throw new Error('Función de restablecimiento de contraseña no implementada en el backend');
+    // return httpClient.post('/api/auth/reset-password', resetData);
   },
 
   /**
@@ -62,7 +66,16 @@ export const authApi = {
    * @returns {Promise<Object>} - Datos del usuario si el token es válido
    */
   verifyToken: async () => {
-    return httpClient.get('/api/auth/verify-admin');
+    return httpClient.get('/api/auth/verify');
+  },
+
+  /**
+   * Obtiene el perfil del usuario actual
+   * @returns {Promise<Object>} - Datos del usuario actual
+   */
+  getProfile: async () => {
+    // Como no hay ruta específica de profile, usamos verify que devuelve datos del usuario
+    return httpClient.get('/api/auth/verify');
   },
 
   /**
