@@ -12,3 +12,4 @@ mysql_data/
 # React build output
 frontend-store/build/
 frontend-admin/build/
+/.vscode

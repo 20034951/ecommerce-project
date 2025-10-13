@@ -33,7 +33,7 @@ router.get('/:id',
     asyncHandler(async(req, res) => {
         const category = await Category.findByPk(req.params.id);
         if (!category){
-            throw new HttpError('Category not found', 404)
+            throw new HttpError(404, 'Category not found')
         }
         res.status(200).json(category);
     })
@@ -56,14 +56,14 @@ router.put('/:id',
     asyncHandler(async(req, res) => {  
         const category = await Category.findByPk(req.params.id);
         if(!category){
-            throw new HttpError('Category not found', 404);
+            throw new HttpError(404, 'Category not found');
         }
 
         const {name, description} = req.body;
 
         // Validation example
         if(name !== undefined && name.trim() === ''){
-            throw new HttpError('Name cannot be empty', 400);
+            throw new HttpError(400, 'Name cannot be empty');
         }
 
         category.name = name ?? category.name;
@@ -81,7 +81,7 @@ router.delete('/:id',
     asyncHandler(async(req, res) => {
         const category = await Category.findByPk(req.params.id);
         if(!category){
-            throw new HttpError('Category not found', 404);
+            throw new HttpError(404, 'Category not found');
         }
 
         await category.destroy();
