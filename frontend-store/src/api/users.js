@@ -1,4 +1,5 @@
 import httpClient from './http.js';
+import { customersApi } from './customers.js';
 
 /**
  * API para manejo de usuarios en el frontend store
@@ -19,7 +20,7 @@ export const usersApi = {
    * @returns {Promise<Object>} - Datos del usuario
    */
   getProfile: async () => {
-    return httpClient.get('/api/customers/profile');
+    return customersApi.getProfile();
   },
 
   /**
@@ -28,7 +29,7 @@ export const usersApi = {
    * @returns {Promise<Object>} - Usuario actualizado
    */
   updateProfile: async (userData) => {
-    return httpClient.put('/api/customers/profile', userData);
+    return customersApi.updateProfile(userData);
   },
 
   /**
@@ -37,7 +38,7 @@ export const usersApi = {
    * @returns {Promise<Object>} - Resultado de la operación
    */
   changePassword: async (passwordData) => {
-    return httpClient.put('/api/users/change-password', passwordData);
+    return customersApi.changePassword(passwordData);
   },
 
   /**

@@ -12,7 +12,7 @@ export const getAllUsers = async () => {
     });
 };
 
-export const getUserById = async (id, searchOptions = {}) => {
+export const getUserById = async (id, searchOptions = {}, includePassword = false) => {
     let whereClause = {};
     
     if (id) {
@@ -23,9 +23,11 @@ export const getUserById = async (id, searchOptions = {}) => {
         throw new HttpError(400, 'ID or email is required');
     }
 
+    const attributes = includePassword ? {} : { exclude: ['password_hash'] };
+
     const user = await User.findOne({
         where: whereClause,
-        attributes: { exclude: ['password_hash'] }
+        attributes
     });
     
     if (!user && id) {

@@ -110,4 +110,171 @@ router.put('/profile',
     })
 );
 
+/**
+ * @route GET /api/customers/sessions
+ * @desc Get current customer's active sessions
+ */
+router.get('/sessions',
+    authenticateToken,
+    requireCustomer,
+    asyncHandler(async (req, res) => {
+        const userId = req.user.user_id;
+        const sessions = await authService.getUserSessions(userId);
+        
+        res.status(200).json({
+            sessions: sessions.map(session => ({
+                session_id: session.session_id,
+                created_at: session.created_at,
+                expires_at: session.expires_at,
+                ip_address: session.ip_address,
+                user_agent: session.user_agent,
+                is_current: session.session_id === req.tokenId
+            }))
+        });
+    })
+);
+
+/**
+ * @route DELETE /api/customers/sessions/:sessionId
+ * @desc Terminate a specific customer session
+ */
+router.delete('/sessions/:sessionId',
+    authenticateToken,
+    requireCustomer,
+    asyncHandler(async (req, res) => {
+        const { sessionId } = req.params;
+        const userId = req.user.user_id;
+        
+        console.log('🔍 Intentando cerrar sesión:', {
+            sessionId,
+            userId,
+            sessionIdType: typeof sessionId
+        });
+        
+        // Obtener las sesiones del usuario para verificar que la sesión le pertenece
+        const sessions = await authService.getUserSessions(userId);
+        
+        console.log('📋 Sesiones disponibles:', sessions.map(s => ({
+            id: s.session_id,
+            type: typeof s.session_id,
+            match: s.session_id === sessionId,
+            strictMatch: s.session_id.toString() === sessionId.toString()
+        })));
+        
+        // Buscar la sesión con comparación más flexible
+        const targetSession = sessions.find(session => 
+            session.session_id.toString() === sessionId.toString()
+        );
+        
+        if (!targetSession) {
+            console.log('❌ Sesión no encontrada. Comparando:');
+            console.log('  - sessionId buscado:', sessionId);
+            console.log('  - sessionIds disponibles:', sessions.map(s => s.session_id));
+            throw new HttpError(404, 'Sesión no encontrada o no pertenece a este usuario');
+        }
+        
+        console.log('✅ Sesión encontrada, revocando...');
+        
+        // Revocar la sesión
+        await authService.revokeSession(sessionId);
+        
+        res.status(200).json({
+            message: 'Sesión cerrada exitosamente'
+        });
+    })
+);
+
+/**
+ * @route DELETE /api/customers/sessions
+ * @desc Terminate all customer sessions except current
+ */
+router.delete('/sessions',
+    authenticateToken,
+    requireCustomer,
+    asyncHandler(async (req, res) => {
+        const userId = req.user.user_id;
+        const currentSessionId = req.tokenId;
+        
+        console.log('🔍 Cerrando todas las sesiones excepto:', {
+            currentSessionId,
+            userId,
+            currentSessionIdType: typeof currentSessionId
+        });
+        
+        // Obtener todas las sesiones del usuario
+        const sessions = await authService.getUserSessions(userId);
+        
+        // Cerrar todas las sesiones excepto la actual (usando comparación más flexible)
+        const sessionsToClose = sessions.filter(session => 
+            session.session_id.toString() !== currentSessionId.toString()
+        );
+        
+        console.log('📋 Sesiones a cerrar:', sessionsToClose.map(s => s.session_id));
+        
+        for (const session of sessionsToClose) {
+            await authService.revokeSession(session.session_id);
+        }
+        
+        res.status(200).json({
+            message: `Se cerraron ${sessionsToClose.length} sesiones`,
+            closedSessions: sessionsToClose.length
+        });
+    })
+);
+
+/**
+ * @route PUT /api/customers/password
+ * @desc Change customer password
+ */
+router.put('/password',
+    authenticateToken,
+    requireCustomer,
+    asyncHandler(async (req, res) => {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.user_id;
+        
+        // Validaciones básicas
+        if (!currentPassword || !newPassword) {
+            throw new HttpError(400, 'Contraseña actual y nueva contraseña son requeridas');
+        }
+        
+        if (newPassword.length < 6) {
+            throw new HttpError(400, 'La nueva contraseña debe tener al menos 6 caracteres');
+        }
+        
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+            throw new HttpError(400, 'La nueva contraseña debe contener al menos una mayúscula, una minúscula y un número');
+        }
+        
+        // Obtener usuario con password
+        const user = await getUserById(userId, {}, true); // true para incluir password
+        
+        // Verificar contraseña actual
+        const isValidPassword = await authService.verifyPassword(currentPassword, user.password_hash);
+        if (!isValidPassword) {
+            throw new HttpError(400, 'La contraseña actual es incorrecta');
+        }
+        
+        // Hash de la nueva contraseña
+        const newPasswordHash = await authService.hashPassword(newPassword);
+        
+        // Actualizar contraseña
+        await updateUser(userId, { password_hash: newPasswordHash });
+        
+        // Cerrar todas las sesiones excepto la actual para forzar re-login
+        const currentSessionId = req.tokenId;
+        const sessions = await authService.getUserSessions(userId);
+        const sessionsToClose = sessions.filter(session => session.session_id !== currentSessionId);
+        
+        for (const session of sessionsToClose) {
+            await authService.revokeSession(session.session_id);
+        }
+        
+        res.status(200).json({
+            message: 'Contraseña actualizada exitosamente. Se cerraron todas las demás sesiones.',
+            closedSessions: sessionsToClose.length
+        });
+    })
+);
+
 export default router;

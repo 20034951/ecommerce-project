@@ -24,7 +24,8 @@ import {
   Settings,
   Camera,
   Phone,
-  Calendar
+  Calendar,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { usersApi } from '../../../api/users.js';
@@ -143,6 +144,13 @@ export default function ProfilePage() {
                 >
                   <Settings className="h-4 w-4 mr-3" />
                   Información Personal
+                </Link>
+                <Link
+                  to="/profile/security"
+                  className="flex items-center w-full px-3 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <Shield className="h-4 w-4 mr-3" />
+                  Seguridad
                 </Link>
                 <Link
                   to="/orders"
