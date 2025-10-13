@@ -23,6 +23,7 @@ const Checkout = lazy(() => import('../modules/checkout/pages/CheckoutPage.jsx')
 
 // User Profile
 const Profile = lazy(() => import('../modules/profile/pages/ProfilePage.jsx'));
+const Security = lazy(() => import('../modules/profile/pages/SecurityPage.jsx'));
 const Orders = lazy(() => import('../modules/orders/pages/OrdersPage.jsx'));
 const OrderDetail = lazy(() => import('../modules/orders/pages/OrderDetailPage.jsx'));
 const Addresses = lazy(() => import('../modules/addresses/pages/AddressesPage.jsx'));
@@ -86,6 +87,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Profile />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: 'profile/security',
+        element: (
+          <PrivateRoute>
+            <Security />
           </PrivateRoute>
         )
       },

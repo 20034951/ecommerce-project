@@ -9,6 +9,7 @@ export { default as httpClient, HttpError } from './http.js';
 // APIs específicas
 export { default as authApi } from './auth.js';
 export { default as usersApi } from './users.js';
+export { default as customersApi } from './customers.js';
 export { default as productsApi } from './products.js';
 export { default as categoriesApi } from './categories.js';
 

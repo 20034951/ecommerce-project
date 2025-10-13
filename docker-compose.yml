@@ -60,11 +60,30 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_URL=${REDIS_URL}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - FROM_EMAIL=${FROM_EMAIL}
+      - FRONTEND_URL=${FRONTEND_ADMIN_URL}
+      - MYSQL_DATABASE_TEST=${MYSQL_DATABASE_TEST}
+      - MYSQL_USER_TEST=${MYSQL_USER_TEST}
+      - MYSQL_PASSWORD_TEST=${MYSQL_PASSWORD_TEST}
+      - MYSQL_HOST_TEST=${MYSQL_HOST_TEST}
+      - MYSQL_PORT_TEST=${MYSQL_PORT_TEST}
     ports:
-      - "5005:5005"
+      - "${PORT}:${PORT}"
     logging:
       driver: "json-file"
       options:
@@ -77,8 +96,18 @@ services:
     build: ./frontend-store
     container_name: ecommerce_frontend_store
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=${VITE_STORE_API_URL}
+      - VITE_APP_NAME=${VITE_STORE_APP_NAME}
+      - VITE_NODE_ENV=${NODE_ENV}
+      - VITE_PORT=${VITE_STORE_PORT}
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_REFRESH_TOKEN_COOKIE_NAME=${VITE_REFRESH_TOKEN_COOKIE_NAME}
+      - VITE_CACHE_TIME=${VITE_CACHE_TIME}
     ports:
-      - "3000:3000"
+      - "${VITE_STORE_PORT}:3000"
     stdin_open: true
     tty: true
     logging:
@@ -93,8 +122,18 @@ services:
     build: ./frontend-admin
     container_name: ecommerce_frontend_admin
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=${VITE_ADMIN_API_URL}
+      - VITE_APP_NAME=${VITE_ADMIN_APP_NAME}
+      - VITE_NODE_ENV=${NODE_ENV}
+      - VITE_PORT=${VITE_ADMIN_PORT}
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_REFRESH_TOKEN_COOKIE_NAME=${VITE_REFRESH_TOKEN_COOKIE_NAME}
+      - VITE_CACHE_TIME=${VITE_CACHE_TIME}
     ports:
-      - "3001:3000"
+      - "${VITE_ADMIN_PORT}:3000"
     stdin_open: true
     tty: true
     logging:
