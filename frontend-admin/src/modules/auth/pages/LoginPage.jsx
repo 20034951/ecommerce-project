@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 import { useTheme } from '../../../contexts/ThemeContext.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
@@ -21,8 +21,6 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
-  console.log('LoginPage isDarkMode:', isDarkMode); // Debug log
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -282,8 +280,8 @@ export default function LoginPage() {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="/admin/auth/forgot-password"
+                <Link
+                  to="/admin/forgot-password"
                     className={`font-medium transition-colors duration-300 ${
                       isDarkMode 
                         ? 'text-blue-400 hover:text-blue-300' 
@@ -291,7 +289,7 @@ export default function LoginPage() {
                     }`}
                 >
                   ¿Olvidaste tu contraseña?
-                </a>
+                </Link>
               </div>
             </div>
 

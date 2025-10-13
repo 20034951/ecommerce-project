@@ -62,6 +62,10 @@ export default (sequelize, DataTypes) => {
             foreignKey: 'user_id',
             as: 'sessions'
         });
+        User.hasMany(models.PasswordResetToken, {
+            foreignKey: 'user_id',
+            as: 'passwordResetTokens'
+        });
     }
 
     return User;

@@ -41,13 +41,12 @@ export const authApi = {
 
   /**
    * Solicita recuperación de contraseña
-   * @param {string} email - Email del usuario
+   * @param {Object} data - Datos para recuperación de contraseña
+   * @param {string} data.email - Email del usuario
    * @returns {Promise<Object>} - Resultado de la operación
    */
-  forgotPassword: async (email) => {
-    // TODO: Implementar en backend
-    throw new Error('Función de recuperación de contraseña no implementada en el backend');
-    // return httpClient.post('/api/auth/forgot-password', { email });
+  forgotPassword: async (data) => {
+    return httpClient.post('/api/auth/forgot-password', data);
   },
 
   /**
@@ -56,9 +55,7 @@ export const authApi = {
    * @returns {Promise<Object>} - Resultado de la operación
    */
   resetPassword: async (resetData) => {
-    // TODO: Implementar en backend
-    throw new Error('Función de restablecimiento de contraseña no implementada en el backend');
-    // return httpClient.post('/api/auth/reset-password', resetData);
+    return httpClient.post('/api/auth/reset-password', resetData);
   },
 
   /**

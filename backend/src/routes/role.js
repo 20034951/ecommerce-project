@@ -3,6 +3,7 @@ import db from '../models/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import HttpError from '../utils/HttpError.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 const { Role } = db;
@@ -17,6 +18,8 @@ const CACHE_TTL = 300;
  * @desc Get all roles
  */
 router.get('/',
+    authenticateToken,
+    requireAdmin,
     cacheMiddleware(CACHE_KEY_ALL, CACHE_TTL),
     asyncHandler(async (req, res) => {
         const roles = await Role.findAll();
@@ -44,6 +47,8 @@ router.get('/:id',
  * @desc Creates a new role
  */
 router.post('/',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, description } = req.body;
 
@@ -70,6 +75,8 @@ router.post('/',
  * @desc Updates an existing role
  */
 router.put('/:id',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, description } = req.body;
         const role = await Role.findByPk(req.params.id);
@@ -91,6 +98,8 @@ router.put('/:id',
 
 
 router.delete('/:id',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
         if(!role){

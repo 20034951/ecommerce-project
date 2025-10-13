@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
+import tokenCleanup from "./middleware/tokenCleanup.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
 import seedDatabase from "./seedDatabase.js";
@@ -28,6 +29,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware para limpiar tokens expirados
+app.use(tokenCleanup.cleanup);
+
 // Middleware para obtener IP real
 app.use((req, res, next) => {
   req.clientIP = req.headers['x-forwarded-for'] || 
@@ -50,9 +54,11 @@ const startServer = async () => {
   try {
     console.log('🚀 Iniciando servidor...');
     
-    // Redis (opcional) - deshabilitado temporalmente
+    // Redis (opcional)
     try {
-      console.log('⚠️ Redis deshabilitado temporalmente');
+      console.log('🔄 Inicializando Redis...');
+      await initRedis();
+      console.log('✅ Redis inicializado correctamente');
     } catch (redisError) {
       console.log('⚠️ Redis no disponible, continuando sin cache');
     }
@@ -62,9 +68,11 @@ const startServer = async () => {
     const productRoutes = (await import("./routes/product.js")).default;
     const userRoutes = (await import("./routes/user.js")).default;
     const authRoutes = (await import("./routes/register.js")).default;
+    const passwordResetRoutes = (await import("./routes/passwordReset.js")).default;
 
     // Montar rutas
     app.use("/api/auth", authRoutes);
+    app.use("/api/auth", passwordResetRoutes);
     app.use("/api/categories", categoryRoutes);
     app.use("/api/products", productRoutes);
     app.use("/api/users", userRoutes);
@@ -95,6 +103,9 @@ const startServer = async () => {
       console.log(`🌐 Backend ejecutándose en puerto ${port}`);
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(`📡 Variables de entorno cargadas: ${process.env.NODE_ENV || 'desarrollo'}`);
+      
+      // Iniciar limpieza automática de tokens
+      tokenCleanup.startAutomaticCleanup();
       
       if (process.env.NODE_ENV === 'development') {
         console.log('\n💡 Para poblar la base de datos con datos de prueba:');

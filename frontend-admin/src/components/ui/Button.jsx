@@ -3,54 +3,78 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../utils/cn.js';
 
+/**
+ * Componente Button con soporte completo para modo oscuro
+ * Sistema de botones con múltiples variantes, tamaños y estados
+ * @param {Object} props
+ * @param {string} props.variant - Variante del botón: 'default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'gradient'
+ * @param {string} props.size - Tamaño del botón: 'default', 'sm', 'lg', 'xl', 'icon'
+ * @param {boolean} props.loading - Si está en estado de carga
+ * @param {React.ReactNode} props.leftIcon - Icono a la izquierda
+ * @param {React.ReactNode} props.rightIcon - Icono a la derecha
+ * @param {boolean} props.asChild - Si debe renderizar como slot de Radix
+ */
+
 const buttonVariants = cva(
   // Base styles
   [
     'inline-flex items-center justify-center',
     'rounded-lg text-sm font-medium',
-    'ring-offset-background transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2',
-    'focus-visible:ring-ring focus-visible:ring-offset-2',
+    'ring-offset-white dark:ring-offset-gray-800 transition-colors duration-200',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
-    'active:scale-95 transition-transform'
+    'active:scale-95 transition-transform',
+    'cursor-pointer'
   ],
   {
     variants: {
       variant: {
         default: [
-          'bg-primary-600 text-white shadow',
-          'hover:bg-primary-700',
-          'focus:ring-primary-500'
+          'bg-blue-600 dark:bg-blue-500 text-white shadow',
+          'hover:bg-blue-700 dark:hover:bg-blue-600',
+          'focus-visible:ring-blue-500'
         ],
         destructive: [
-          'bg-red-600 text-white shadow-sm',
-          'hover:bg-red-700',
-          'focus:ring-red-500'
+          'bg-red-600 dark:bg-red-500 text-white shadow-sm',
+          'hover:bg-red-700 dark:hover:bg-red-600',
+          'focus-visible:ring-red-500'
         ],
         outline: [
-          'border border-input bg-background shadow-sm',
-          'hover:bg-accent hover:text-accent-foreground',
-          'focus:ring-primary-500'
+          'border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm',
+          'text-gray-900 dark:text-gray-100',
+          'hover:bg-gray-50 dark:hover:bg-gray-700',
+          'focus-visible:ring-blue-500'
         ],
         secondary: [
-          'bg-secondary text-secondary-foreground shadow-sm',
-          'hover:bg-secondary/80',
-          'focus:ring-secondary-500'
+          'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm',
+          'hover:bg-gray-200 dark:hover:bg-gray-600',
+          'focus-visible:ring-gray-500'
         ],
         ghost: [
-          'hover:bg-accent hover:text-accent-foreground',
-          'focus:ring-primary-500'
+          'text-gray-700 dark:text-gray-300',
+          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          'focus-visible:ring-blue-500'
         ],
         link: [
-          'text-primary underline-offset-4',
-          'hover:underline',
-          'focus:ring-primary-500'
+          'text-blue-600 dark:text-blue-400 underline-offset-4',
+          'hover:underline hover:text-blue-700 dark:hover:text-blue-300',
+          'focus-visible:ring-blue-500'
         ],
         gradient: [
-          'bg-gradient-to-r from-primary-600 to-blue-600',
+          'bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500',
           'text-white shadow-lg',
-          'hover:from-primary-700 hover:to-blue-700',
-          'focus:ring-primary-500'
+          'hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600',
+          'focus-visible:ring-blue-500'
+        ],
+        success: [
+          'bg-green-600 dark:bg-green-500 text-white shadow',
+          'hover:bg-green-700 dark:hover:bg-green-600',
+          'focus-visible:ring-green-500'
+        ],
+        warning: [
+          'bg-amber-500 dark:bg-amber-600 text-white shadow',
+          'hover:bg-amber-600 dark:hover:bg-amber-700',
+          'focus-visible:ring-amber-500'
         ]
       },
       size: {

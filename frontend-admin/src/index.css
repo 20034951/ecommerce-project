@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Estilos globales personalizados */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -12,7 +15,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -49,4 +51,32 @@ input, button, textarea, select {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.bg-card {
+  @apply bg-white dark:bg-gray-800;
+}
+
+.bg-primary {
+  @apply bg-blue-600 dark:bg-blue-500 text-white dark:text-gray-900;
+}
+
+.text-primary {
+  @apply text-blue-600 dark:text-blue-500;
+}
+
+.bg-destructive {
+  @apply bg-red-600 dark:bg-red-500 text-white dark:text-gray-900;
+}
+
+.text-destructive-foreground {
+  @apply text-white dark:text-gray-900;
+}
+
+.bg-secondary {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100;
+}
+
+.text-secondary {
+  @apply text-gray-900 dark:text-gray-100;
 }

@@ -14,7 +14,7 @@ export function TokenDebugger() {
   const [isVisible, setIsVisible] = useState(false);
 
   // Solo mostrar en desarrollo
-  const isDevelopment = import.meta.env.DEV;
+  const isDevelopment = false;// import.meta.env.DEV;
 
   useEffect(() => {
     if (!isDevelopment) return;
