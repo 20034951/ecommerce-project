@@ -12,11 +12,26 @@ export const getAllUsers = async () => {
     });
 };
 
-export const getUserById = async (id) => {
-    const user = await User.findByPk(id, {
+export const getUserById = async (id, searchOptions = {}) => {
+    let whereClause = {};
+    
+    if (id) {
+        whereClause.user_id = id;
+    } else if (searchOptions.email) {
+        whereClause.email = searchOptions.email;
+    } else {
+        throw new HttpError(400, 'ID or email is required');
+    }
+
+    const user = await User.findOne({
+        where: whereClause,
         attributes: { exclude: ['password_hash'] }
     });
-    if(!user) throw new HttpError(404, 'User not found');
+    
+    if (!user && id) {
+        throw new HttpError(404, 'User not found');
+    }
+    
     return user;
 };
 

@@ -1,7 +1,7 @@
 import express from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
-import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+import { authenticateToken, requireAdmin, requireCustomer } from '../middleware/auth.js';
 import HttpError from '../utils/HttpError.js';
 import { 
     getAllUsers,

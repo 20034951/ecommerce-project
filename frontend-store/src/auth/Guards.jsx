@@ -38,8 +38,11 @@ export function PrivateRoute({ children, redirectTo = '/login' }) {
 export function PublicRoute({ children, redirectTo = '/' }) {
   const { isAuthenticated, isLoading } = useAuth();
 
+  console.log('🔓 PublicRoute - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated);
+
   // Mostrar loading mientras se verifica la autenticación
   if (isLoading) {
+    console.log('⏳ PublicRoute - Mostrando spinner de carga...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -49,9 +52,11 @@ export function PublicRoute({ children, redirectTo = '/' }) {
 
   // Redirigir al dashboard si ya está autenticado
   if (isAuthenticated) {
+    console.log('🔀 PublicRoute - Usuario autenticado, redirigiendo a:', redirectTo);
     return <Navigate to={redirectTo} replace />;
   }
 
+  console.log('✅ PublicRoute - Permitiendo acceso a ruta pública');
   return children;
 }
 

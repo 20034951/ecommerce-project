@@ -19,7 +19,7 @@ export const usersApi = {
    * @returns {Promise<Object>} - Datos del usuario
    */
   getProfile: async () => {
-    return httpClient.get('/api/users/profile');
+    return httpClient.get('/api/customers/profile');
   },
 
   /**
@@ -28,7 +28,7 @@ export const usersApi = {
    * @returns {Promise<Object>} - Usuario actualizado
    */
   updateProfile: async (userData) => {
-    return httpClient.put('/api/users/profile', userData);
+    return httpClient.put('/api/customers/profile', userData);
   },
 
   /**

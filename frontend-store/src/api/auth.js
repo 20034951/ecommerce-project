@@ -14,11 +14,8 @@ export const authApi = {
     const response = await httpClient.post('/api/auth/login', credentials);
     
     // Guardar tokens después del login exitoso
-    if (response.accessToken) {
-      httpClient.setAccessToken(response.accessToken);
-    }
-    if (response.refreshToken) {
-      httpClient.setRefreshToken(response.refreshToken);
+    if (response.accessToken && response.refreshToken) {
+      httpClient.saveTokensToStorage(response.accessToken, response.refreshToken);
     }
     
     return response;
@@ -34,8 +31,7 @@ export const authApi = {
       return response;
     } finally {
       // Limpiar tokens independientemente del resultado
-      httpClient.clearAccessToken();
-      httpClient.clearRefreshToken();
+      httpClient.clearTokensFromStorage();
     }
   },
 
@@ -45,7 +41,7 @@ export const authApi = {
    * @returns {Promise<Object>} - Usuario registrado
    */
   register: async (userData) => {
-    return httpClient.post('/api/register', userData);
+    return httpClient.post('/api/auth/register', userData);
   },
 
   /**
@@ -64,6 +60,15 @@ export const authApi = {
    */
   resetPassword: async (resetData) => {
     return httpClient.post('/api/auth/reset-password', resetData);
+  },
+
+  /**
+   * Valida un token de recuperación de contraseña
+   * @param {string} token - Token de recuperación
+   * @returns {Promise<Object>} - Validación del token
+   */
+  validateResetToken: async (token) => {
+    return httpClient.post('/api/auth/validate-reset-token', { token });
   },
 
   /**
