@@ -58,6 +58,50 @@ const Unauthorized = lazy(() => import('../modules/errors/pages/UnauthorizedPage
 const ErrorTest = lazy(() => import('../modules/errors/pages/ErrorTestPage.jsx'));
 
 export const router = createBrowserRouter([
+  // Auth routes (public only) - DEBEN IR PRIMERO para tener prioridad
+  {
+    path: '/admin/login',
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <PublicAdminRoute>
+            <Login />
+          </PublicAdminRoute>
+        )
+      }
+    ]
+  },
+  {
+    path: '/admin/forgot-password',
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <PasswordResetRoute>
+            <ForgotPassword />
+          </PasswordResetRoute>
+        )
+      }
+    ]
+  },
+  {
+    path: '/admin/reset-password',
+    element: <AuthLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <PasswordResetRoute>
+            <ResetPassword />
+          </PasswordResetRoute>
+        )
+      }
+    ]
+  },
+  // Admin routes (protected)
   {
     path: '/admin',
     element: <AdminLayout />,
@@ -222,37 +266,6 @@ export const router = createBrowserRouter([
           <AdminRoute>
             <AdminNotFound />
           </AdminRoute>
-        )
-      }
-    ]
-  },
-  // Auth routes (public only)
-  {
-    path: '/admin',
-    element: <AuthLayout />,
-    children: [
-      {
-        path: 'login',
-        element: (
-          <PublicAdminRoute>
-            <Login />
-          </PublicAdminRoute>
-        )
-      },
-      {
-        path: 'forgot-password',
-        element: (
-          <PasswordResetRoute>
-            <ForgotPassword />
-          </PasswordResetRoute>
-        )
-      },
-      {
-        path: 'reset-password',
-        element: (
-          <PasswordResetRoute>
-            <ResetPassword />
-          </PasswordResetRoute>
         )
       }
     ]

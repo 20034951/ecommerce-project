@@ -27,13 +27,12 @@ export default function ResetPasswordPage() {
   });
   
   const token = searchParams.get('token');
-  const email = searchParams.get('email');
 
   useEffect(() => {
-    if (!token || !email) {
+    if (!token) {
       setError('Token de recuperación inválido o expirado.');
     }
-  }, [token, email]);
+  }, [token]);
 
   // Password strength checker
   useEffect(() => {
@@ -121,7 +120,7 @@ export default function ResetPasswordPage() {
   };
 
   // Redirect if no token
-  if (!token || !email) {
+  if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -196,10 +195,7 @@ export default function ResetPasswordPage() {
         <p className={`text-lg transition-colors duration-300 ${
           isDarkMode ? 'text-gray-300' : 'text-slate-600'
         }`}>
-          Crea una nueva contraseña segura para{' '}
-          <strong className={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}>
-            {email}
-          </strong>
+          Crea una nueva contraseña segura para tu cuenta.
         </p>
       </div>
 

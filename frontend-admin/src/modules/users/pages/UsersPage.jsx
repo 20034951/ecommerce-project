@@ -8,7 +8,7 @@ import { Spinner } from '../../../components/ui/Spinner.jsx';
 import ConfirmationModal from '../../../components/ui/ConfirmationModal.jsx';
 import { useConfirmation } from '../../../hooks/useConfirmation.js';
 import { usersApi } from '../../../api/users.js';
-import { Users, UserPlus, UserCheck, UserX, Shield, Search, Filter, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Users, UserPlus, UserCheck, UserX, Shield, Search, Filter, CheckCircle, AlertTriangle, Eye, Edit, KeyRound, Power, Trash2 } from 'lucide-react';
 
 export default function UsersPage() {
   const navigate = useNavigate();
@@ -411,40 +411,45 @@ export default function UsersPage() {
                         size="sm"
                         onClick={() => navigate(`/admin/users/${user.user_id}`)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                        title="Ver usuario"
                       >
-                        Ver
+                        <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate(`/admin/users/${user.user_id}/edit`)}
                         className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300"
+                        title="Editar usuario"
                       >
-                        Editar
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handlePasswordReset(user.email, user.name)}
                         className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300"
+                        title="Restablecer contraseña"
                       >
-                        Restablecer Contraseña
+                        <KeyRound className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleStatus(user.user_id, user.isActive, user.name)}
                         className={user.isActive === true ? 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300' : 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300'}
+                        title={user.isActive === true ? 'Desactivar usuario' : 'Activar usuario'}
                       >
-                        {user.isActive === true ? 'Desactivar' : 'Activar'}
+                        <Power className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteUser(user.user_id, user.name)}
                         className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                        title="Eliminar usuario"
                       >
-                        Eliminar
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </td>
                   </tr>
