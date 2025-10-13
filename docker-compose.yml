@@ -1,8 +1,7 @@
-# Services
 services:
   mysql:
     image: mysql:8.0
-    container_name: ecommerce_mysql
+    container_name: ecommerce_mysqWl
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -10,10 +9,17 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ecommerce_net
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -24,6 +30,11 @@ services:
       PMA_PORT: 3306
     ports:
       - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ecommerce_net
 
   redis:
     image: redis:7.4-alpine
@@ -34,46 +45,109 @@ services:
     volumes:
       - redis_data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    networks:
+      - ecommerce_net
 
   backend:
     build: ./backend
     container_name: ecommerce_backend
     restart: always
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_URL=${REDIS_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - FRONTEND_URL=${FRONTEND_ADMIN_URL}
+      - MYSQL_DATABASE_TEST=${MYSQL_DATABASE_TEST}
+      - MYSQL_USER_TEST=${MYSQL_USER_TEST}
+      - MYSQL_PASSWORD_TEST=${MYSQL_PASSWORD_TEST}
+      - MYSQL_HOST_TEST=${MYSQL_HOST_TEST}
+      - MYSQL_PORT_TEST=${MYSQL_PORT_TEST}
     ports:
-      - "5005:5005"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - "${PORT}:${PORT}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
   frontend-store:
     build: ./frontend-store
     container_name: ecommerce_frontend_store
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=${VITE_STORE_API_URL}
+      - VITE_APP_NAME=${VITE_STORE_APP_NAME}
+      - VITE_NODE_ENV=${NODE_ENV}
+      - VITE_PORT=${VITE_STORE_PORT}
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_REFRESH_TOKEN_COOKIE_NAME=${VITE_REFRESH_TOKEN_COOKIE_NAME}
+      - VITE_CACHE_TIME=${VITE_CACHE_TIME}
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend-store:/app
-      - /app/node_modules
+      - "${VITE_STORE_PORT}:3000"
     stdin_open: true
     tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
   frontend-admin:
     build: ./frontend-admin
     container_name: ecommerce_frontend_admin
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=${VITE_ADMIN_API_URL}
+      - VITE_APP_NAME=${VITE_ADMIN_APP_NAME}
+      - VITE_NODE_ENV=${NODE_ENV}
+      - VITE_PORT=${VITE_ADMIN_PORT}
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_REFRESH_TOKEN_COOKIE_NAME=${VITE_REFRESH_TOKEN_COOKIE_NAME}
+      - VITE_CACHE_TIME=${VITE_CACHE_TIME}
     ports:
-      - "3001:3000"
-    volumes:
-      - ./frontend-admin:/app
-      - /app/node_modules
+      - "${VITE_ADMIN_PORT}:3000"
     stdin_open: true
     tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
 volumes:
   mysql_data:
   redis_data:
+
+networks:
+  ecommerce_net:
+    driver: bridge
