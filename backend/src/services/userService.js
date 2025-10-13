@@ -13,7 +13,7 @@ export const getUserById = async (id) => {
     const user = await User.findByPk(id, {
         include: [ { model: Role, through: { attributes: [] } }]
     });
-    if(!user) throw new HttpError('User not found', 404);
+    if(!user) throw new HttpError(404, 'User not found');
     return user;
 };
 
@@ -21,11 +21,11 @@ export const createUser = async (data) => {
     const { name, username, email, password, isActive, roles = [] } = data;
 
     if(!name || !username || !email || !password){
-        throw new HttpError('Missing required fields', 400);
+        throw new HttpError(400, 'Missing required fields');
     }
 
     const existing = await User.findOne({ where: { username }});
-    if (existing) throw new HttpError('Username already exists', 400);
+    if (existing) throw new HttpError(400, 'Username already exists');
 
     const user = await User.create( {name, username, email, password, isActive } );
 
@@ -40,7 +40,7 @@ export const createUser = async (data) => {
 export const updateUser = async (id, data) => {
     const { name, username, email, password, isActive, roles } = data;
     const user = await User.findByPk(id);
-    if(!user) throw new HttpError('User not found', 404);
+    if(!user) throw new HttpError(404, 'User not found');
 
     if(name !== undefined) user.name = name;
     if(username !== undefined) user.username = username;
@@ -60,7 +60,7 @@ export const updateUser = async (id, data) => {
 
 export const deleteUser = async (id) => {
     const user = await User.findByPk(id);
-    if (!user) throw new HttpError('User not found', 404);
+    if (!user) throw new HttpError(404, 'User not found');
 
     await user.destroy();
     return { message: 'User deleted successfully' };

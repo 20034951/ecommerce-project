@@ -1,8 +1,7 @@
-# Services
 services:
   mysql:
     image: mysql:8.0
-    container_name: ecommerce_mysql
+    container_name: ecommerce_mysqWl
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -10,10 +9,17 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ecommerce_net
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -24,6 +30,11 @@ services:
       PMA_PORT: 3306
     ports:
       - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ecommerce_net
 
   redis:
     image: redis:7.4-alpine
@@ -34,21 +45,31 @@ services:
     volumes:
       - redis_data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    networks:
+      - ecommerce_net
 
   backend:
     build: ./backend
     container_name: ecommerce_backend
     restart: always
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - .env
+    environment:
+      - NODE_ENV=development
     ports:
       - "5005:5005"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
   frontend-store:
     build: ./frontend-store
@@ -56,11 +77,15 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend-store:/app
-      - /app/node_modules
     stdin_open: true
     tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
   frontend-admin:
     build: ./frontend-admin
@@ -68,12 +93,20 @@ services:
     restart: always
     ports:
       - "3001:3000"
-    volumes:
-      - ./frontend-admin:/app
-      - /app/node_modules
     stdin_open: true
     tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecommerce_net
 
 volumes:
   mysql_data:
   redis_data:
+
+networks:
+  ecommerce_net:
+    driver: bridge

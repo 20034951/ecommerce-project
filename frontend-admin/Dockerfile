@@ -1,38 +1,35 @@
-# Dockerfile para Frontend Admin (Desarrollo)
-FROM node:22-alpine
+# --- STAGE 1: build ---
+FROM node:20-alpine AS build
 
-# Instalar dumb-init para manejo de señales
+WORKDIR /app
+COPY package*.json ./
+
+# Instalar todas las dependencias (incluyendo devDependencies para Vite)
+RUN npm ci --silent && npm cache clean --force
+
+COPY . .
+
+# --- STAGE 2: runtime ---
+FROM node:20-alpine
+
+# Instalar dumb-init y crear usuario
 RUN apk add --no-cache dumb-init
-
-# Crear usuario no-root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 WORKDIR /app
 
-# Copiar archivos de configuración como root
-COPY package*.json ./
-COPY vite.config.js ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
+# Copiar archivos y cambiar ownership
+COPY --from=build --chown=nextjs:nodejs /app /app
 
-# Instalar dependencias como root
-RUN npm install
-
-# Cambiar ownership de todos los archivos al usuario no-root
-RUN chown -R nextjs:nodejs /app
-
-# Cambiar a usuario no-root
+# Cambiar a usuario no root
 USER nextjs
 
-# Exponer puerto
-EXPOSE 3000
-
-# Variables de entorno para Vite
+# Variables de entorno
 ENV HOST=0.0.0.0
 ENV PORT=3000
-ENV VITE_HOST=0.0.0.0
+ENV NODE_ENV=development
 
-# Comando de inicio con dumb-init
+EXPOSE 3000
+
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "run", "dev"]

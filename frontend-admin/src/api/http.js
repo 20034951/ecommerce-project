@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { isTokenExpired, shouldRefreshToken } from '../utils/tokenUtils.js';
 
 /**
  * Cliente HTTP base con interceptores JWT y manejo de errores
@@ -14,8 +15,26 @@ class HttpClient {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5005';
     this.accessToken = null;
     this.refreshTokenName = import.meta.env.VITE_REFRESH_TOKEN_COOKIE_NAME || 'refresh_token';
+    this.accessTokenStorageKey = 'admin_access_token';
     this.isRefreshing = false;
     this.failedQueue = [];
+    
+    // Intentar recuperar el token al inicializar
+    this.initializeToken();
+  }
+
+  /**
+   * Inicializa el token desde sessionStorage
+   */
+  initializeToken() {
+    try {
+      const storedToken = sessionStorage.getItem(this.accessTokenStorageKey);
+      if (storedToken) {
+        this.accessToken = storedToken;
+      }
+    } catch (error) {
+      console.warn('Error al recuperar token del sessionStorage:', error);
+    }
   }
 
   /**
@@ -23,6 +42,17 @@ class HttpClient {
    */
   setAccessToken(token) {
     this.accessToken = token;
+    
+    // Persistir en sessionStorage para mantener en recarga de página
+    try {
+      if (token) {
+        sessionStorage.setItem(this.accessTokenStorageKey, token);
+      } else {
+        sessionStorage.removeItem(this.accessTokenStorageKey);
+      }
+    } catch (error) {
+      console.warn('Error al guardar token en sessionStorage:', error);
+    }
   }
 
   /**
@@ -37,6 +67,13 @@ class HttpClient {
    */
   clearAccessToken() {
     this.accessToken = null;
+    
+    // Eliminar del sessionStorage
+    try {
+      sessionStorage.removeItem(this.accessTokenStorageKey);
+    } catch (error) {
+      console.warn('Error al eliminar token del sessionStorage:', error);
+    }
   }
 
   /**
@@ -50,8 +87,9 @@ class HttpClient {
    * Establece el refresh token en cookies httpOnly
    */
   setRefreshToken(token) {
+    // Nota: No podemos establecer cookies httpOnly desde JavaScript
+    // El backend debe configurar la cookie httpOnly en la respuesta
     Cookies.set(this.refreshTokenName, token, {
-      httpOnly: true,
       secure: import.meta.env.PROD,
       sameSite: 'strict',
       expires: 7 // 7 días
@@ -63,6 +101,20 @@ class HttpClient {
    */
   clearRefreshToken() {
     Cookies.remove(this.refreshTokenName);
+  }
+
+  /**
+   * Verifica si hay un token de acceso disponible
+   */
+  hasValidToken() {
+    return !!this.accessToken;
+  }
+
+  /**
+   * Verifica si hay un refresh token disponible
+   */
+  hasRefreshToken() {
+    return !!this.getRefreshToken();
   }
 
   /**
@@ -106,6 +158,11 @@ class HttpClient {
       const data = await response.json();
       this.setAccessToken(data.accessToken);
       
+      // Si hay un nuevo refresh token, guardarlo también
+      if (data.refreshToken) {
+        this.setRefreshToken(data.refreshToken);
+      }
+      
       return data.accessToken;
     } catch (error) {
       this.clearAccessToken();
@@ -119,6 +176,16 @@ class HttpClient {
    * Método principal para realizar peticiones HTTP
    */
   async request(url, options = {}) {
+    // Verificar si el token necesita renovación antes de hacer la petición
+    if (this.accessToken && shouldRefreshToken(this.accessToken)) {
+      try {
+        await this.refreshAccessToken();
+      } catch (error) {
+        console.warn('Error al renovar token automáticamente:', error);
+        // Continuar con la petición, el interceptor manejará el 401 si es necesario
+      }
+    }
+
     const fullUrl = `${this.baseURL}${url}`;
     
     // Preparar headers por defecto
@@ -127,7 +194,7 @@ class HttpClient {
     };
 
     // Agregar Authorization header si hay token
-    if (this.accessToken) {
+    if (this.accessToken && !isTokenExpired(this.accessToken)) {
       defaultHeaders['Authorization'] = `Bearer ${this.accessToken}`;
     }
 

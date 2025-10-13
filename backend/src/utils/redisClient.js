@@ -3,9 +3,8 @@ import { createClient } from 'redis';
 let redisClient;
 
 export const initRedis = async () => {
-
     if(process.env.NODE_ENV === 'test'){
-        console.log("[Redis Mock] using in-memory mock client for tests");
+        console.log("⚡ [Redis Mock] usando cliente simulado para pruebas");
         redisClient = {
             get: async () => null,
             setEx: async () => {},
@@ -17,21 +16,56 @@ export const initRedis = async () => {
     }
 
     if(!redisClient){
-        redisClient = createClient({
-            url: process.env.REDIS_URL || 'redis://redis:6379'
-        });
-        redisClient.on('error', (err) => console.error('Redis Client Error', err));
+        try {
+            // Configurar URL de Redis basada en el entorno
+            const redisHost = process.env.REDIS_HOST || 'localhost';
+            const redisPort = process.env.REDIS_PORT || '6379';
+            const redisPassword = process.env.REDIS_PASSWORD || '';
+            
+            let redisUrl;
+            if (redisPassword) {
+                redisUrl = `redis://:${redisPassword}@${redisHost}:${redisPort}`;
+            } else {
+                redisUrl = `redis://${redisHost}:${redisPort}`;
+            }
 
-        await redisClient.connect();
-        redisClient.on('connect', () => console.log('Connected to Redis Client'));
+            redisClient = createClient({
+                url: redisUrl,
+                socket: {
+                    connectTimeout: 5000,
+                    lazyConnect: true
+                }
+            });
+            
+            redisClient.on('error', (err) => {
+                console.log('⚠️ Redis error (continuando sin cache):', err.message);
+            });
+
+            redisClient.on('connect', () => console.log('✅ Conectado a Redis'));
+            redisClient.on('ready', () => console.log('✅ Redis listo para usar'));
+
+            // Intentar conectar con timeout
+            const connectPromise = redisClient.connect();
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout de conexión a Redis')), 3000)
+            );
+
+            await Promise.race([connectPromise, timeoutPromise]);
+            
+        } catch (error) {
+            console.log('⚠️ No se pudo conectar a Redis, continuando sin cache:', error.message);
+            
+            // Crear un cliente mock para que la aplicación continue funcionando
+            redisClient = {
+                get: async () => null,
+                setEx: async () => {},
+                del: async () => {},
+                connect: async () => {},
+                disconnect: async () => {}
+            };
+        }
     }
     return redisClient;
 };
 
-
-export const getRedisClient = () => {
-    if(!redisClient) {
-        throw new Error('Redis client not initialized. Call initRedis() first.');
-    }
-    return redisClient;
-} 
+export const getRedisClient = () => redisClient; 

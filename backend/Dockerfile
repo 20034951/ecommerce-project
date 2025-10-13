@@ -1,18 +1,22 @@
+# --- STAGE 1: build ---
+FROM node:22-alpine AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+
+# --- STAGE 2: runtime ---
 FROM node:22-alpine
 
 WORKDIR /app
-
-# Install netcat and mysql-client first
 RUN apk add --no-cache netcat-openbsd mysql-client
 
-COPY package*.json ./
-RUN npm install
+COPY --from=build /app /app
 
-COPY . .
-
-# Convert line endings and give execute permissions to the script
 RUN sed -i 's/\r$//' wait-mysql.sh && chmod +x wait-mysql.sh
 
+# No forzar NODE_ENV, permitir que venga del docker-compose
 EXPOSE 5005
-#CMD ["npm", "run", "dev"]
+
 CMD ["sh", "./wait-mysql.sh"]
