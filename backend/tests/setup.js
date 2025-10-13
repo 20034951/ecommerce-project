@@ -16,6 +16,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     try{
+        await new Promise(resolve => setTimeout(resolve, 500));
         await db.sequelize.close();
         const client = getRedisClient();
         if(client && typeof client.disconnect === 'function'){
