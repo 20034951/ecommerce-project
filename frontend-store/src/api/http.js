@@ -1,5 +1,3 @@
-import Cookies from 'js-cookie';
-
 /**
  * Cliente HTTP base con interceptores JWT y manejo de errores
  * Funcionalidades:
@@ -13,9 +11,65 @@ class HttpClient {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5005';
     this.accessToken = null;
-    this.refreshTokenName = import.meta.env.VITE_REFRESH_TOKEN_COOKIE_NAME || 'refresh_token';
+    this.refreshToken = null;
     this.isRefreshing = false;
     this.failedQueue = [];
+    
+    // Intentar cargar tokens desde localStorage al inicializar
+    this.loadTokensFromStorage();
+  }
+
+  /**
+   * Carga tokens desde localStorage
+   */
+  loadTokensFromStorage() {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (accessToken) {
+        this.accessToken = accessToken;
+      }
+      
+      if (refreshToken) {
+        this.refreshToken = refreshToken;
+      }
+    } catch (error) {
+      console.error('Error cargando tokens desde localStorage:', error);
+    }
+  }
+
+  /**
+   * Guarda tokens en localStorage
+   */
+  saveTokensToStorage(accessToken, refreshToken) {
+    try {
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        this.accessToken = accessToken;
+      }
+      
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+        this.refreshToken = refreshToken;
+      }
+    } catch (error) {
+      console.error('Error guardando tokens en localStorage:', error);
+    }
+  }
+
+  /**
+   * Limpia tokens del almacenamiento
+   */
+  clearTokensFromStorage() {
+    try {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      this.accessToken = null;
+      this.refreshToken = null;
+    } catch (error) {
+      console.error('Error limpiando tokens del localStorage:', error);
+    }
   }
 
   /**
@@ -23,6 +77,9 @@ class HttpClient {
    */
   setAccessToken(token) {
     this.accessToken = token;
+    if (token) {
+      localStorage.setItem('accessToken', token);
+    }
   }
 
   /**
@@ -33,36 +90,20 @@ class HttpClient {
   }
 
   /**
-   * Elimina el token de acceso
-   */
-  clearAccessToken() {
-    this.accessToken = null;
-  }
-
-  /**
-   * Obtiene el refresh token de las cookies
-   */
-  getRefreshToken() {
-    return Cookies.get(this.refreshTokenName);
-  }
-
-  /**
-   * Establece el refresh token en cookies httpOnly
+   * Establece el refresh token
    */
   setRefreshToken(token) {
-    Cookies.set(this.refreshTokenName, token, {
-      httpOnly: true,
-      secure: import.meta.env.PROD,
-      sameSite: 'strict',
-      expires: 7 // 7 días
-    });
+    this.refreshToken = token;
+    if (token) {
+      localStorage.setItem('refreshToken', token);
+    }
   }
 
   /**
-   * Elimina el refresh token
+   * Obtiene el refresh token
    */
-  clearRefreshToken() {
-    Cookies.remove(this.refreshTokenName);
+  getRefreshToken() {
+    return this.refreshToken;
   }
 
   /**
@@ -84,8 +125,17 @@ class HttpClient {
    * Intenta renovar el access token usando el refresh token
    */
   async refreshAccessToken() {
+    if (this.isRefreshing) {
+      return new Promise((resolve, reject) => {
+        this.failedQueue.push({ resolve, reject });
+      });
+    }
+
+    this.isRefreshing = true;
+
     try {
       const refreshToken = this.getRefreshToken();
+      
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
@@ -95,23 +145,27 @@ class HttpClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        body: JSON.stringify({ refreshToken })
+        body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
-        throw new Error('Refresh token failed');
+        throw new Error('Failed to refresh token');
       }
 
       const data = await response.json();
-      this.setAccessToken(data.accessToken);
+      
+      // Actualizar tokens
+      this.saveTokensToStorage(data.accessToken, data.refreshToken);
+      
+      this.processQueue(null, data.accessToken);
       
       return data.accessToken;
     } catch (error) {
-      this.clearAccessToken();
-      this.clearRefreshToken();
-      // TODO: Redirigir al login
+      this.processQueue(error, null);
+      this.clearTokensFromStorage();
       throw error;
+    } finally {
+      this.isRefreshing = false;
     }
   }
 

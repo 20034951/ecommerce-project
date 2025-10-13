@@ -62,22 +62,6 @@ export default function DashboardPage() {
           <p className="text-xs text-green-600 dark:text-green-400 mt-1">+16% este mes</p>
         </div>
       </div>
-
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-soft border border-gray-100 dark:border-gray-800">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-            <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sistema Operativo</h2>
-        </div>
-        <p className="text-gray-600 dark:text-gray-400">
-          Dashboard funcionando correctamente. Los componentes y estilos se están cargando sin errores.
-        </p>
-        <div className="mt-4 flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-sm text-green-600 dark:text-green-400">Estado: Activo</span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -7,17 +7,21 @@ import {
   Menu, 
   X,
   Heart,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Button } from '../ui';
 import { useAuth } from '../../auth/AuthProvider.jsx';
 import { AuthGuard } from '../../auth/Guards.jsx';
 import { useCart } from '../../modules/cart/hooks/useCart.js';
+import { useTheme } from '../../contexts/ThemeProvider.jsx';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -26,13 +30,13 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary-600">Store</span>
+              <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">Store</span>
             </Link>
           </div>
 
@@ -40,25 +44,25 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               to="/catalog" 
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Catálogo
             </Link>
             <Link 
               to="/categories" 
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Categorías
             </Link>
             <Link 
               to="/about" 
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Acerca de
             </Link>
             <Link 
               to="/contact" 
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Contacto
             </Link>
@@ -68,11 +72,11 @@ export function Header() {
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <div className="relative w-full">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Buscar productos..."
               />
             </div>
@@ -80,11 +84,24 @@ export function Header() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+
             {/* Wishlist */}
             <AuthGuard fallback={null}>
               <Link 
                 to="/wishlist" 
-                className="text-gray-700 hover:text-primary-600 p-2 transition-colors relative"
+                className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 p-2 transition-colors relative"
               >
                 <Heart className="h-6 w-6" />
               </Link>
@@ -93,7 +110,7 @@ export function Header() {
             {/* Shopping Cart */}
             <Link 
               to="/cart" 
-              className="text-gray-700 hover:text-primary-600 p-2 transition-colors relative"
+              className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 p-2 transition-colors relative"
             >
               <ShoppingCart className="h-6 w-6" />
               {itemCount > 0 && (

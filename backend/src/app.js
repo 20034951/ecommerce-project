@@ -67,6 +67,7 @@ const startServer = async () => {
     const categoryRoutes = (await import("./routes/category.js")).default;
     const productRoutes = (await import("./routes/product.js")).default;
     const userRoutes = (await import("./routes/user.js")).default;
+    const customerRoutes = (await import("./routes/customer.js")).default;
     const authRoutes = (await import("./routes/register.js")).default;
     const passwordResetRoutes = (await import("./routes/passwordReset.js")).default;
 
@@ -76,6 +77,7 @@ const startServer = async () => {
     app.use("/api/categories", categoryRoutes);
     app.use("/api/products", productRoutes);
     app.use("/api/users", userRoutes);
+    app.use("/api/customers", customerRoutes);
 
     // Ruta para poblar la base de datos (solo desarrollo)
     if (process.env.NODE_ENV === 'development') {

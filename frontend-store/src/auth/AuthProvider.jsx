@@ -39,8 +39,11 @@ const initialState = {
  * Reducer para manejar el estado de autenticación
  */
 function authReducer(state, action) {
+  console.log('🔄 AuthReducer - Acción:', action.type, 'Estado actual loading:', state.isLoading);
+  
   switch (action.type) {
     case AUTH_ACTIONS.SET_LOADING:
+      console.log('⏳ Estableciendo estado de carga...');
       return {
         ...state,
         isLoading: true,
@@ -49,6 +52,7 @@ function authReducer(state, action) {
       };
       
     case AUTH_ACTIONS.LOGIN_SUCCESS:
+      console.log('✅ Login exitoso');
       return {
         ...state,
         user: action.payload.user,
@@ -59,6 +63,7 @@ function authReducer(state, action) {
       };
       
     case AUTH_ACTIONS.LOGIN_ERROR:
+      console.log('❌ Error de login');
       return {
         ...state,
         user: null,
@@ -69,6 +74,7 @@ function authReducer(state, action) {
       };
       
     case AUTH_ACTIONS.LOGOUT:
+      console.log('👋 Logout');
       return {
         ...state,
         user: null,
@@ -79,16 +85,19 @@ function authReducer(state, action) {
       };
       
     case AUTH_ACTIONS.SET_USER:
+      const hasUser = !!action.payload.user;
+      console.log('👤 Estableciendo usuario:', hasUser ? 'autenticado' : 'no autenticado');
       return {
         ...state,
         user: action.payload.user,
-        isAuthenticated: !!action.payload.user,
+        isAuthenticated: hasUser,
         isLoading: false,
         error: null,
-        status: action.payload.user ? AUTH_STATES.AUTHENTICATED : AUTH_STATES.UNAUTHENTICATED
+        status: hasUser ? AUTH_STATES.AUTHENTICATED : AUTH_STATES.UNAUTHENTICATED
       };
       
     case AUTH_ACTIONS.CLEAR_ERROR:
+      console.log('🧹 Limpiando error');
       return {
         ...state,
         error: null
@@ -115,26 +124,50 @@ export function AuthProvider({ children }) {
    */
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('🔍 Iniciando verificación de autenticación...');
+      
       try {
         const token = httpClient.getAccessToken();
+        console.log('🔑 Token encontrado:', !!token);
+        
         if (!token) {
+          // Si no hay token, directamente marcar como no autenticado
+          console.log('❌ No hay token, marcando como no autenticado');
           dispatch({ type: AUTH_ACTIONS.SET_USER, payload: { user: null } });
           return;
         }
 
+        console.log('⏳ Iniciando verificación con backend...');
         dispatch({ type: AUTH_ACTIONS.SET_LOADING });
         
-        // Verificar token con el backend
-        const userData = await authApi.verifyToken();
+        // Verificar token con el backend con timeout
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout de verificación')), 5000)
+        );
+        
+        const response = await Promise.race([
+          authApi.verifyToken(),
+          timeoutPromise
+        ]);
+        
+        console.log('✅ Token válido, usuario autenticado');
         dispatch({ 
           type: AUTH_ACTIONS.SET_USER, 
-          payload: { user: userData } 
+          payload: { user: response.user } 
         });
       } catch (error) {
-        console.error('Error verificando autenticación:', error);
+        console.log('❌ Error en verificación:', error.status || 'sin status', error.message);
+        
+        // Para errores de autenticación (401, 403), no mostrar en consola
+        if (error.status === 401 || error.status === 403) {
+          console.log('🔄 Sesión expirada o inválida, limpiando tokens...');
+        } else {
+          console.error('💥 Error inesperado verificando autenticación:', error);
+        }
+        
         // Limpiar tokens inválidos
-        httpClient.clearAccessToken();
-        httpClient.clearRefreshToken();
+        httpClient.clearTokensFromStorage();
+        console.log('🧹 Tokens limpiados, marcando como no autenticado');
         dispatch({ type: AUTH_ACTIONS.SET_USER, payload: { user: null } });
       }
     };
@@ -208,6 +241,18 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Cierra la sesión localmente sin petición al servidor
+   * Útil cuando el servidor ya cerró la sesión (ej: cambio de email)
+   */
+  const logoutLocal = () => {
+    console.log('🧹 Cerrando sesión local - limpiando tokens y estado');
+    // Limpiar tokens del almacenamiento local
+    httpClient.clearTokensFromStorage();
+    // Actualizar estado local
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+  };
+
+  /**
    * Solicita recuperación de contraseña
    */
   const forgotPassword = async (email) => {
@@ -224,6 +269,17 @@ export function AuthProvider({ children }) {
   const resetPassword = async (resetData) => {
     try {
       return await authApi.resetPassword(resetData);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * Valida un token de recuperación de contraseña
+   */
+  const validateResetToken = async (token) => {
+    try {
+      return await authApi.validateResetToken(token);
     } catch (error) {
       throw error;
     }
@@ -258,8 +314,10 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    logoutLocal,
     forgotPassword,
     resetPassword,
+    validateResetToken,
     updateUser,
     clearError
   };
