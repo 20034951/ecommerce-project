@@ -5,8 +5,6 @@ import { ThemeProvider, useTheme } from '../contexts/ThemeContext.jsx';
 function AuthLayoutContent() {
   const { isDarkMode } = useTheme();
 
-  console.log('AuthLayout isDarkMode:', isDarkMode); // Debug log
-
   return (
     <div className={`min-h-screen h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden ${
       isDarkMode 

@@ -10,7 +10,8 @@ const {
     Coupon,
     Cart,
     CartItem,
-    Notification
+    Notification,
+    UserSession
 } = db;
 
 async function seedDatabase() {
@@ -336,6 +337,64 @@ async function seedDatabase() {
 
         await Notification.bulkCreate(notifications);
         console.log(`✅ ${notifications.length} notificaciones creadas`);
+
+        // Crear sesiones de usuario de prueba
+        console.log('🔐 Creando sesiones de usuario...');
+        const userSessions = [
+            {
+                user_id: createdUsers[2].user_id, // Juan
+                token_id: 'session_juan_desktop_001',
+                device_info: 'Windows 10 Desktop Chrome',
+                ip_address: '192.168.1.100',
+                user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                is_active: true,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+                last_activity: new Date(Date.now() - 10 * 60 * 1000) // hace 10 minutos
+            },
+            {
+                user_id: createdUsers[2].user_id, // Juan
+                token_id: 'session_juan_mobile_001',
+                device_info: 'iPhone 15 Pro Safari Mobile',
+                ip_address: '192.168.1.101',
+                user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+                is_active: true,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+                last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000) // hace 2 horas
+            },
+            {
+                user_id: createdUsers[3].user_id, // Ana
+                token_id: 'session_ana_desktop_001',
+                device_info: 'macOS Monterey Safari',
+                ip_address: '192.168.1.102',
+                user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+                is_active: true,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+                last_activity: new Date(Date.now() - 30 * 60 * 1000) // hace 30 minutos
+            },
+            {
+                user_id: createdUsers[3].user_id, // Ana
+                token_id: 'session_ana_tablet_001',
+                device_info: 'iPad Pro Safari',
+                ip_address: '192.168.1.103',
+                user_agent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+                is_active: true,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+                last_activity: new Date(Date.now() - 4 * 60 * 60 * 1000) // hace 4 horas
+            },
+            {
+                user_id: createdUsers[4].user_id, // Carlos
+                token_id: 'session_carlos_mobile_001',
+                device_info: 'Samsung Galaxy S24 Chrome Mobile',
+                ip_address: '192.168.1.104',
+                user_agent: 'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+                is_active: true,
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+                last_activity: new Date(Date.now() - 1 * 60 * 60 * 1000) // hace 1 hora
+            }
+        ];
+
+        await UserSession.bulkCreate(userSessions);
+        console.log(`✅ ${userSessions.length} sesiones de usuario creadas`);
 
         console.log('\n🎉 ¡Base de datos poblada exitosamente!');
         console.log('\n👤 Usuarios de prueba creados:');

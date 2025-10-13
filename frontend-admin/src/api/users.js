@@ -64,22 +64,22 @@ export const usersApi = {
   },
 
   /**
-   * Asigna roles a un usuario
-   * @param {number} userId - ID del usuario
-   * @param {Array} roleIds - IDs de los roles
-   * @returns {Promise<Object>} - Resultado de la operación
+   * Actualiza el rol de un usuario
+   * @param {number} id - ID del usuario
+   * @param {string} role - Nuevo rol (customer, admin, editor)
+   * @returns {Promise<Object>} - Usuario actualizado
    */
-  assignRoles: async (userId, roleIds) => {
-    return httpClient.post(`/api/users/${userId}/roles`, { roleIds });
+  updateRole: async (id, role) => {
+    return httpClient.put(`/api/users/${id}/role`, { role });
   },
 
   /**
-   * Obtiene los roles de un usuario
-   * @param {number} userId - ID del usuario
-   * @returns {Promise<Array>} - Roles del usuario
+   * Obtiene las sesiones activas de un usuario
+   * @param {number} id - ID del usuario
+   * @returns {Promise<Array>} - Sesiones activas del usuario
    */
-  getRoles: async (userId) => {
-    return httpClient.get(`/api/users/${userId}/roles`);
+  getSessions: async (id) => {
+    return httpClient.get(`/api/users/${id}/sessions`);
   },
 
   /**
@@ -90,7 +90,35 @@ export const usersApi = {
    */
   resetPassword: async (id, newPassword) => {
     return httpClient.post(`/api/users/${id}/reset-password`, { password: newPassword });
+  },
+
+  /**
+   * Termina una sesión específica de un usuario
+   * @param {number} userId - ID del usuario
+   * @param {number} sessionId - ID de la sesión
+   * @returns {Promise<Object>} - Resultado de la operación
+   */
+  terminateSession: async (userId, sessionId) => {
+    return httpClient.delete(`/api/users/${userId}/sessions/${sessionId}`);
+  },
+
+  /**
+   * Termina todas las sesiones de un usuario
+   * @param {number} userId - ID del usuario
+   * @returns {Promise<Object>} - Resultado de la operación
+   */
+  terminateAllSessions: async (userId) => {
+    return httpClient.delete(`/api/users/${userId}/sessions`);
+  },
+
+  /**
+   * Solicita recuperación de contraseña para un usuario
+   * @param {string} email - Email del usuario
+   * @returns {Promise<Object>} - Resultado de la operación
+   */
+  requestPasswordReset: async (email) => {
+    return httpClient.post('/api/auth/forgot-password', { email });
   }
 };
 
-export default usersApi;
+export default usersApi;  

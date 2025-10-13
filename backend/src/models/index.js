@@ -16,6 +16,7 @@ import CouponModel from './coupon.js';
 import OrderModel from './order.js';
 import OrderItemModel from './orderItem.js';
 import UserSessionModel from './userSession.js';
+import PasswordResetTokenModel from './passwordResetToken.js';
 
 // Inicializar modelos
 const Product = ProductModel(sequelize, DataTypes);
@@ -32,6 +33,7 @@ const Coupon = CouponModel(sequelize, DataTypes);
 const Order = OrderModel(sequelize, DataTypes);
 const OrderItem = OrderItemModel(sequelize, DataTypes);
 const UserSession = UserSessionModel(sequelize, DataTypes);
+const PasswordResetToken = PasswordResetTokenModel(sequelize, DataTypes);
 
 // Configurar asociaciones
 const models = {
@@ -48,7 +50,8 @@ const models = {
     Coupon,
     Order,
     OrderItem,
-    UserSession
+    UserSession,
+    PasswordResetToken
 };
 
 // Ejecutar asociaciones

@@ -177,7 +177,7 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200">
+          <div className="md:hidden border-t border-gray-100">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {/* Search Bar Mobile */}
               <div className="relative mb-3">
@@ -221,7 +221,7 @@ export function Header() {
               </Link>
 
               <AuthGuard fallback={
-                <div className="pt-4 pb-3 border-t border-gray-200">
+                <div className="pt-4 pb-3 border-t border-gray-100">
                   <div className="flex flex-col space-y-2 px-3">
                     <Button 
                       variant="ghost" 
@@ -245,7 +245,7 @@ export function Header() {
                   </div>
                 </div>
               }>
-                <div className="pt-4 pb-3 border-t border-gray-200">
+                <div className="pt-4 pb-3 border-t border-gray-100">
                   <div className="px-3 mb-3">
                     <p className="text-base font-medium text-gray-800">{user?.name}</p>
                     <p className="text-sm text-gray-500">{user?.email}</p>
