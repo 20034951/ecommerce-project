@@ -27,7 +27,7 @@ router.get('/:id',
             include: [{ model: Category, attributes:['id', 'name'] }]
         });
         if(!product) {
-            throw new HttpError('Product not found', 404);
+            throw new HttpError(404, 'Product not found');
         }
         res.status(200).json(product);
     })
@@ -41,7 +41,7 @@ router.post('/',
         //Check if category exists
         const category = await Category.findByPk(categoryId);
         if(!category){
-            throw new HttpError('Invalid category', 400);
+            throw new HttpError(400, 'Invalid category');
         }
 
         const newProduct = await Product.create({
@@ -65,7 +65,7 @@ router.put('/:id',
     asyncHandler(async(req, res) => {
         const product = await Product.findByPk(req.params.id);
         if(!product) {
-            throw new HttpError('Product not found', 404);
+            throw new HttpError(404, 'Product not found');
         }
         
         const { name, description, value, stock, imagePath, categoryId } = req.body;
@@ -74,7 +74,7 @@ router.put('/:id',
         if(categoryId){
             const category = await Category.findByPk(categoryId);
             if(!category){
-                throw new HttpError('Invalid category', 400);
+                throw new HttpError(400, 'Invalid category');
             }
             product.categoryId = categoryId;
         }
@@ -98,7 +98,7 @@ router.delete('/:id',
     asyncHandler(async(req, res) => {
         const product = await Product.findByPk(req.params.id);
         if(!product){
-            throw new HttpError('Product not found', 404);
+            throw new HttpError(404, 'Product not found');
         }
 
         await product.destroy();

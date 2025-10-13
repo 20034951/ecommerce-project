@@ -3,6 +3,7 @@ import db from '../models/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import HttpError from '../utils/HttpError.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 const { Role } = db;
@@ -17,6 +18,8 @@ const CACHE_TTL = 300;
  * @desc Get all roles
  */
 router.get('/',
+    authenticateToken,
+    requireAdmin,
     cacheMiddleware(CACHE_KEY_ALL, CACHE_TTL),
     asyncHandler(async (req, res) => {
         const roles = await Role.findAll();
@@ -33,7 +36,7 @@ router.get('/:id',
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
         if(!role){
-            throw new HttpError('Role not found', 404);
+            throw new HttpError(404, 'Role not found');
         }
         res.status(200).json(role);
     })
@@ -44,17 +47,19 @@ router.get('/:id',
  * @desc Creates a new role
  */
 router.post('/',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, description } = req.body;
 
         if(!name){
-            throw new HttpError('Role name is required', 400);
+            throw new HttpError(400, 'Role name is required');
         }
 
         const existing = await Role.findOne( { where: {name} } );
 
         if(existing) {
-            throw new HttpError('Role name already exists', 400);
+            throw new HttpError(400, 'Role name already exists');
         }
 
         const role = await Role.create( { name, description } );
@@ -70,12 +75,14 @@ router.post('/',
  * @desc Updates an existing role
  */
 router.put('/:id',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, description } = req.body;
         const role = await Role.findByPk(req.params.id);
 
         if(!role){
-            throw new HttpError('Role not found', 400);
+            throw new HttpError(400, 'Role not found');
         }
 
         if(name) role.name = name;
@@ -91,10 +98,12 @@ router.put('/:id',
 
 
 router.delete('/:id',
+    authenticateToken,
+    requireAdmin,
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
         if(!role){
-            throw new HttpError('Role not found', 404);
+            throw new HttpError(404, 'Role not found');
         }
 
         await role.destroy();
