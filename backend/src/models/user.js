@@ -1,59 +1,71 @@
-import bcrypt from 'bcrypt';
-
 export default (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
-        id: { 
-            type: DataTypes.INTEGER, 
-            autoIncrement: true, 
-            primaryKey: true 
+        user_id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
         },
-        name: { 
-            type: DataTypes.STRING, 
-            allowNull: false 
+        name: {
+            type: DataTypes.STRING(100),
+            allowNull: false
         },
-        username: { 
-            type: DataTypes.STRING, 
-            allowNull: false, 
-            unique: true 
+        email: {
+            type: DataTypes.STRING(150),
+            allowNull: false,
+            unique: true
         },
-        email: { 
-            type: DataTypes.STRING, 
-            allowNull: false, 
-            unique: true 
+        password_hash: {
+            type: DataTypes.STRING(255),
+            allowNull: false
         },
-        password: { 
-            type: DataTypes.STRING, 
-            allowNull: false 
+        phone: {
+            type: DataTypes.STRING(20),
+            allowNull: true
         },
-        isActive: { 
-            type: DataTypes.BOOLEAN, 
-            defaultValue: true 
+        role: {
+            type: DataTypes.ENUM('customer', 'admin', 'editor'),
+            defaultValue: 'customer'
+        },
+        isActive: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
         }
     }, {
-        tableName: 'users',
+        tableName: 'user',
         timestamps: true,
-        defaultScope: { attributes: { exclude: ['password'] } },
-        scopes: { withPassword: { attributes: { include: ['password'] } } },
-        hooks: {
-            beforeCreate: async (user) => {
-                if(user.password) {
-                    console.log('[DEBUG][User.beforeCreate] hashing password for:', user.username);
-                    user.password = await bcrypt.hash(user.password, 12);
-                    console.log('[DEBUG][User.beforeCreate] hashed password length:', user.password.length);
-                }
-            },
-            beforeUpdate: async (user) => {
-                if(user.changed('password')) {
-                    console.log('[DEBUG][User.beforeUpdate] hashing updated password for:', user.username);
-                    user.password = await bcrypt.hash(user.password, 12);
-                    console.log('[DEBUG][User.beforeUpdate] hashed password length:', user.password.length);
-                }
-            }
-        }
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
     });
 
     User.associate = (models) => {
-        User.belongsToMany(models.Role, { through: models.UserRole, foreignKey: 'userId', otherKey: 'roleId' });
+        User.hasMany(models.UserAddress, { 
+            foreignKey: 'user_id',
+            as: 'addresses'
+        });
+        User.hasMany(models.Cart, {
+            foreignKey: 'user_id',
+            as: 'carts'
+        });
+        User.hasMany(models.Order, {
+            foreignKey: 'user_id',
+            as: 'orders'
+        });
+        User.hasMany(models.Review, {
+            foreignKey: 'user_id',
+            as: 'reviews'
+        });
+        User.hasMany(models.Notification, {
+            foreignKey: 'user_id',
+            as: 'notifications'
+        });
+        User.hasMany(models.UserSession, {
+            foreignKey: 'user_id',
+            as: 'sessions'
+        });
+        User.hasMany(models.PasswordResetToken, {
+            foreignKey: 'user_id',
+            as: 'passwordResetTokens'
+        });
     }
 
     return User;
