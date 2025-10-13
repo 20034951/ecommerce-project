@@ -1,19 +1,22 @@
-FROM node:20
+# --- STAGE 1: build ---
+FROM node:22-alpine AS build
 
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install
-
+RUN npm ci
 COPY . .
 
-RUN chmod +x wait-mysql.sh
+# --- STAGE 2: runtime ---
+FROM node:22-alpine
 
-# Install netcat to check MySQL port in case we want to remove this part we need to modify wait-mysql.sh file
-RUN apt-get update && \
-    apt-get install -y netcat-openbsd default-mysql-client && \
-    rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+RUN apk add --no-cache netcat-openbsd mysql-client
 
+COPY --from=build /app /app
+
+RUN sed -i 's/\r$//' wait-mysql.sh && chmod +x wait-mysql.sh
+
+# No forzar NODE_ENV, permitir que venga del docker-compose
 EXPOSE 5005
-#CMD ["npm", "run", "dev"]
-CMD ["./wait-mysql.sh"]
+
+CMD ["sh", "./wait-mysql.sh"]
