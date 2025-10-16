@@ -23,18 +23,24 @@ export default (sequelize, DataTypes) => {
         }
     }, {
         tableName: 'category',
-        timestamps: false
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
     });
 
     Category.associate = (models) => {
         Category.hasMany(models.Product, {
             foreignKey: 'category_id',
-            as: 'products'
+            as: 'products',
+            onDelete: 'RESTRICT',
+            onUpdate: 'CASCADE'
         });
+
         Category.belongsTo(Category, {
             foreignKey: 'parent_id',
             as: 'parent'
         });
+
         Category.hasMany(Category, {
             foreignKey: 'parent_id',
             as: 'children'
