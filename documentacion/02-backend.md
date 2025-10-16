@@ -66,11 +66,14 @@ backend/src/
 │   ├── authService.js
 │   ├── emailService.js
 │   ├── passwordResetService.js
+│   ├── ProductService.js
 │   └── userService.js
 └── utils/             # Utilidades
     ├── asyncHandler.js
     ├── HttpError.js
+    ├── Paginator.js
     └── redisClient.js
+    └── sendPaginatedResponse.js
 ```
 
 ## Endpoints API
@@ -113,7 +116,10 @@ DELETE /api/categories/:id          # Eliminar categoría
 
 ### Productos (`/api/products`)
 ```http
-GET    /api/products                # Listar productos
+GET    /api/products?page=1&limit=5                                             # Listar productos usando paginador
+GET    /api/products?page=2&limit=5&sortBy=price&sortOrder=desc                 # Listar productos ordenados por precio de manera descendente
+GET    /api/products?page=1&limit=5&category_id=3&name=robot                    # Listar productos pertenecientes a categoría con ID 3 y que su nombre contenga "robot"
+GET    ?page=1&limit=5&category_id=3&name=robot&filterMode=or                   # Listar productos pertenecientes a categoría con ID 3 o que su nombre contenga "robot"
 GET    /api/products/:id            # Producto por ID
 POST   /api/products                # Crear producto
 PUT    /api/products/:id            # Actualizar producto
@@ -301,6 +307,16 @@ tokenCleanup.startAutomaticCleanup(); // Cada hora
 - cleanExpiredTokens()          // Limpieza automática
 ```
 
+### 4. ProductService (`services/ProductService.js`)
+```javascript
+// Funcionalidades:
+- getAll(query)                 // Genera una lista de productos que cumplan las condiciones del query
+- getById(id)                   // Obtiene el detalle del producto relacionado al ID enviado si existe
+- create(data)                  // Crea un nuevo producto
+- update(id, data)              // Actualiza un producto relacionado al ID enviado sí el registro existe
+- delete(id)                    // Actualiza un producto relacionado al ID enviado sí el registro existe
+```
+
 ## Utilidades
 
 ### 1. AsyncHandler (`utils/asyncHandler.js`)
@@ -344,6 +360,187 @@ if (!user) {
 - setCache(key, value, ttl) // Guardar en cache
 - deleteCache(key)         // Eliminar del cache
 - clearCache()             // Limpiar todo
+```
+
+### 4. Paginator (`utils/Paginator.js`)
+```javascript
+
+
+
+// Utilidad para manejar paginación, ordenamiento y filtros dinámicos de manera
+// reutilizable en endpoints que utilizan Sequelize. Extrae parámetros desde
+// req.query, valida valores y construye automáticamente los objetos necesarios
+// (limit, offset, order, where).
+
+---
+
+## Funcionalidades
+
+  - constructor(query)    // Inicializa paginación, ordenamiento, filtros y modo de filtrado. 
+  - allowSort(fields)     // Define los campos permitidos para ordenar. |
+  - allowFilter(fields)    // Define los campos permitidos para filtrar.
+- validateSort()          // Valida y corrige sortBy si no está permitido.
+  - buildFilters()        // Construye dinámicamente el objeto where (LIKE, exacto, numérico). 
+  - build()               // Genera el objeto final para Sequelize (limit, offset, order, where, metadata).
+ 
+
+## Parámetros aceptados desde req.query
+
+| Parámetro | Tipo | Default | Descripción |
+|-----------|------|---------|-------------|
+| page | number | 1 | Número de página (1-based). |
+| limit | number | 10 | Elementos por página. |
+| sortBy | string | created_at | Campo para ordenar. |
+| sortOrder | string ('asc' | 'desc') | ASC | Dirección del orden. |
+| filterMode | string ('and' | 'or') | and | Cómo combinar filtros múltiples. |
+ 
+// Todos los demás parámetros del query pueden ser usados como filtros si fueron definidos con allowFilter.
+
+
+## Reglas de filtrado (buildFilters)
+ 
+// La construcción de condiciones where se basa en las siguientes reglas:
+ 
+1. **Campo `name`**: búsqueda parcial con LIKE '%valor%'
+2. **Strings que representan números**: se convierten a Number para coincidencia exacta
+3. **Otros valores**: coincidencia exacta
+4. **Valores vacíos**: se ignoran
+5. **Modo de combinación**:
+   - filterMode = 'and' (por defecto) → { [Op.and]: [condiciones...] }
+   - filterMode = 'or' → { [Op.or]: [condiciones...] }
+ 
+
+### Ejemplo de query
+ ?name=John&status=active&age=30
+ 
+### Resultado esperado (condiciones)
+[
+  { name: { [Op.like]: '%John%' } },
+  { status: 'active' },
+  { age: 30 }
+]
+ 
+ 
+## Ordenamiento (validateSort)
+ 
+- sortBy se valida contra allowedSort.  
+- Si sortBy no está permitido, se reemplaza por el primer campo de allowedSort.  
+- sortOrder se normaliza a ASC o DESC.
+ 
+ 
+## Resultado final (build)
+ 
+ // El método build() retorna un objeto listo para Model.findAndCountAll() o Model.findAll():
+ 
+{
+  limit: number,
+  offset: number,
+  order: [[sortBy, sortOrder]],
+  where: object,
+  page: number,
+  sortBy: string,
+  sortOrder: 'ASC' | 'DESC',
+  filterMode: 'and' | 'or'
+}
+ 
+
+## Ejemplo de uso en un endpoint Express
+
+import Paginator from '../utils/paginator.js';
+import { Product } from '../models';
+ 
+router.get('/products', async (req, res) => {
+    const paginator = new Paginator(req.query)
+        .allowSort(['name', 'price', 'created_at'])
+        .allowFilter(['name', 'category_id', 'price', 'status']);
+ 
+    const options = paginator.build();
+ 
+    const result = await Product.findAndCountAll(options);
+ 
+    res.json({
+        items: result.rows,
+        total: result.count,
+        page: options.page,
+        limit: options.limit,
+        sortBy: options.sortBy,
+        sortOrder: options.sortOrder,
+        filterMode: options.filterMode
+    });
+});
+ 
+---
+ 
+## Ejemplo: Filtro OR entre campos
+ 
+// GET /users?name=ana&email=gmail&filterMode=or
+const paginator = new Paginator(req.query)
+    .allowSort(['created_at'])
+    .allowFilter(['name', 'email']);
+ 
+const options = paginator.build();
+// where => { [Op.or]: [ { name: { [Op.like]: '%ana%' } }, { email: { [Op.like]: '%gmail%' } } ] }
+
+ 
+## Ejemplo: validación de sort
+ 
+
+// GET /products?sortBy=unknown
+const paginator = new Paginator(req.query)
+    .allowSort(['name', 'price']);
+ 
+const { order } = paginator.build();
+// order se ajustará a [['name', 'ASC']] si 'unknown' no está permitido
+
+ 
+## Beneficios
+ 
+- Reutilizable en múltiples endpoints
+- Evita duplicación de lógica de paginación/filtros
+- Previene ordenamientos o filtros no autorizados
+- Integración nativa con Sequelize (Op.and, Op.or, Op.like)
+- Manejo de modos de filtro flexibles (and / or)
+- Devuelve metadatos útiles para respuestas paginadas
+ 
+ 
+## Recomendaciones para uso en la API
+ 
+Se sugiere combinar esta clase con el helper sendPaginatedResponse() para mantener respuestas consistentes:
+ 
+
+sendPaginatedResponse(res, result.rows, result.count, options);
+
+ 
+Este helper suele devolver:
+- items
+- total
+- page
+- totalPages
+- limit
+- sortBy
+- sortOrder
+- filterMode
+ 
+## Estructura del archivo
+ 
+```
+utils/
+└── Paginator.js
+```
+ 
+ 
+## Próximas mejoras sugeridas (opcional)
+
+- Soporte para filtros por rango (price_min, price_max)
+- Soporte para incluir relaciones (include)
+- Validación automática de tipos (string, number, boolean)
+ 
+ 
+## Conclusión
+ 
+Clase limpia y reutilizable para gestionar paginación, ordenamiento y filtros en APIs basadas en Sequelize.
+Evita repetir lógica en controladores y facilita respuestas paginadas consistentes.
+
 ```
 
 ## Configuración

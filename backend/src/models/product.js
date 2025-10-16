@@ -23,15 +23,21 @@ export default (sequelize, DataTypes) => {
         },
         price: {
             type: DataTypes.DECIMAL(10, 2),
-            allowNull: false
+            allowNull: false,
+            validate: { min: 0 }
         },
         stock: {
             type: DataTypes.INTEGER,
-            defaultValue: 0
+            defaultValue: 0,
+            validate: { min: 0 }
         },
         sku: {
             type: DataTypes.STRING(50),
             unique: true,
+            allowNull: true
+        },
+        image_path: {
+            type: DataTypes.STRING(255),
             allowNull: true
         }
     }, {
@@ -44,8 +50,11 @@ export default (sequelize, DataTypes) => {
     Product.associate = (models) => {
         Product.belongsTo(models.Category, {
             foreignKey: 'category_id',
-            as: 'category'
+            as: 'category',
+            onDelete: 'RESTRICT',
+            onUpdate: 'CASCADE'
         });
+
         Product.hasMany(models.ProductTag, {
             foreignKey: 'product_id',
             as: 'tags'

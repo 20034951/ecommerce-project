@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS category (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     parent_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES category(category_id) ON DELETE SET NULL
 );
 
