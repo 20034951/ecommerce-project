@@ -1,111 +1,74 @@
 import express from 'express';
-import db from '../models/index.js';
-import { asyncHandler } from '../utils/asyncHandler.js'
-import HttpError from '../utils/HttpError.js';
-import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { cacheMiddleware, invalidateCache, invalidateCacheByPrefix } from '../middleware/cache.js';
+import ProductService from '../services/productService.js';
+import { sendPaginatedResponse } from '../utils/sendPaginatedResponse.js';
 
 const router = express.Router();
-const { Product, Category } = db;
-const CACHE_TTL = 120;
+const CACHE_TTL = 300;
 
-// Get all products with category associated
-router.get('/', 
-    cacheMiddleware('products:all', CACHE_TTL),
-    asyncHandler(async(req, res) => {
-        const products = await Product.findAll({
-            include: [{ model: Category, attributes:['id', 'name'] }]
-        });
-        res.status(200).json(products);
+// Utility: build a deterministic cache key from query params (sorted keys)
+const buildCacheKeyFromQuery = (prefix, query = {}) => {
+    const keys = Object.keys(query).sort();
+    const parts = keys.map(k => `${encodeURIComponent(k)}=${encodeURIComponent(String(query[k] ?? ''))}`);
+    const queryString = parts.join('&');
+    return `${prefix}:${queryString}`;
+};
+
+const CACHE_PREFIX_ALL = 'products:all';
+const CACHE_KEY_BY_ID = (id) => `product:${id}`;
+
+// GET all products (paginated + filters) with cache key that includes query params
+router.get('/',
+    cacheMiddleware((req) => buildCacheKeyFromQuery(CACHE_PREFIX_ALL, req.query), CACHE_TTL),
+    asyncHandler(async (req, res) => {
+        const { rows, count, paginator } = await ProductService.getAll(req.query);
+        sendPaginatedResponse(res, { rows, count }, paginator);
     })
 );
 
-// Get product by ID
-router.get('/:id', 
-    cacheMiddleware((req) => `product:${req.params.id}`, CACHE_TTL),
-    asyncHandler(async(req, res) => {
-        const product = await Product.findByPk(req.params.id, {
-            include: [{ model: Category, attributes:['id', 'name'] }]
-        });
-        if(!product) {
-            throw new HttpError(404, 'Product not found');
-        }
+// GET product by ID
+router.get('/:id',
+    cacheMiddleware((req) => CACHE_KEY_BY_ID(req.params.id), CACHE_TTL),
+    asyncHandler(async (req, res) => {
+        const product = await ProductService.getById(req.params.id);
         res.status(200).json(product);
     })
 );
 
-// Create product
-router.post('/', 
-    asyncHandler(async(req, res) => {
-        const { name, description, value, stock, imagePath, categoryId } = req.body;
-
-        //Check if category exists
-        const category = await Category.findByPk(categoryId);
-        if(!category){
-            throw new HttpError(400, 'Invalid category');
-        }
-
-        const newProduct = await Product.create({
-            name,
-            description,
-            value,
-            stock,
-            imagePath,
-            categoryId
-        });
-
-        await invalidateCache(['products:all']);
-
-        res.status(201).json(newProduct);
-    })
+// CREATE product
+router.post('/',
+  asyncHandler(async (req, res) => {
+    const newProduct = await ProductService.create(req.body);
+    
+    await invalidateCacheByPrefix(CACHE_PREFIX_ALL);
+ 
+    res.status(201).json(newProduct);
+  })
 );
 
+// UPDATE product
+router.put('/:id',
+  asyncHandler(async (req, res) => {
+    const updatedProduct = await ProductService.update(req.params.id, req.body);
 
-// Update product
-router.put('/:id', 
-    asyncHandler(async(req, res) => {
-        const product = await Product.findByPk(req.params.id);
-        if(!product) {
-            throw new HttpError(404, 'Product not found');
-        }
-        
-        const { name, description, value, stock, imagePath, categoryId } = req.body;
+    await invalidateCacheByPrefix(CACHE_PREFIX_ALL);
+    await invalidateCache([CACHE_KEY_BY_ID(req.params.id)]);
 
-        //Check if category exists
-        if(categoryId){
-            const category = await Category.findByPk(categoryId);
-            if(!category){
-                throw new HttpError(400, 'Invalid category');
-            }
-            product.categoryId = categoryId;
-        }
-        
-        product.name = name || product.name;
-        product.description = description || product.description;
-        product.value = value || product.value;
-        product.stock = stock ?? product.stock;
-        product.imagePath = imagePath || product.imagePath;
-        
-        await product.save();
-
-        await invalidateCache([`product:${req.params.id}`, 'products:all']);
-
-        res.status(200).json(product);
-    })
+    res.status(200).json(updatedProduct);
+  })
 );
 
-// Delete product
-router.delete('/:id', 
-    asyncHandler(async(req, res) => {
-        const product = await Product.findByPk(req.params.id);
-        if(!product){
-            throw new HttpError(404, 'Product not found');
-        }
+// DELETE product
+router.delete('/:id',
+  asyncHandler(async (req, res) => {
+    await ProductService.delete(req.params.id);
 
-        await product.destroy();
-        await invalidateCache([`product:${req.params.id}`, 'products:all']);
+    await invalidateCacheByPrefix(CACHE_PREFIX_ALL);
+    await invalidateCache([CACHE_KEY_BY_ID(req.params.id)]);
 
-        res.status(200).json({ message: 'Product successfully removed' });
-    })
+    res.status(200).json({ message: 'Product successfully removed' });
+  })
 );
 
 export default router;

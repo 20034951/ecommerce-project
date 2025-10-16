@@ -63,3 +63,20 @@ export const invalidateCache = async (keys = []) => {
         console.error('Error invalidating cache: ', err);
     }
 }
+
+/**
+ * 
+ * @param {string} prefix - Key prefix to remove
+ */
+export async function invalidateCacheByPrefix(prefix) {
+    try {
+        const redisClient = getRedisClient();
+        const keys = await redisClient.keys(`${prefix}*`);
+        if (keys.length > 0) {
+            await redisClient.del(keys);
+            console.log(`Cache invalidated for keys: ${keys.join(', ')}`);
+        }
+    } catch (err) {
+        console.error('Error invalidating cache: ', err);
+    }    
+}

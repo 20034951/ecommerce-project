@@ -139,7 +139,8 @@ async function seedDatabase() {
                 description: 'Último modelo con tecnología avanzada',
                 price: 699.99,
                 stock: 50,
-                sku: 'SMX-001'
+                sku: 'SMX-001',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[0].category_id,
@@ -147,7 +148,8 @@ async function seedDatabase() {
                 description: 'Laptop de alto rendimiento para gaming',
                 price: 1299.99,
                 stock: 30,
-                sku: 'LTP-101'
+                sku: 'LTP-101',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[0].category_id,
@@ -155,7 +157,8 @@ async function seedDatabase() {
                 description: 'Auriculares inalámbricos con cancelación de ruido',
                 price: 199.99,
                 stock: 75,
-                sku: 'AUR-201'
+                sku: 'AUR-201',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[1].category_id,
@@ -163,7 +166,8 @@ async function seedDatabase() {
                 description: 'Camiseta de algodón 100% orgánico',
                 price: 19.99,
                 stock: 200,
-                sku: 'CAM-500'
+                sku: 'CAM-500',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[1].category_id,
@@ -171,7 +175,8 @@ async function seedDatabase() {
                 description: 'Pantalones jeans de corte moderno',
                 price: 79.99,
                 stock: 120,
-                sku: 'JEA-600'
+                sku: 'JEA-600',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[2].category_id,
@@ -179,7 +184,8 @@ async function seedDatabase() {
                 description: 'Aspiradora inteligente con mapeo automático',
                 price: 299.99,
                 stock: 40,
-                sku: 'ASP-888'
+                sku: 'ASP-888',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[2].category_id,
@@ -187,7 +193,8 @@ async function seedDatabase() {
                 description: 'Cafetera automática con molinillo integrado',
                 price: 249.99,
                 stock: 60,
-                sku: 'CAF-777'
+                sku: 'CAF-777',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[3].category_id,
@@ -195,7 +202,8 @@ async function seedDatabase() {
                 description: 'Guía completa de JavaScript moderno',
                 price: 39.99,
                 stock: 100,
-                sku: 'LIB-400'
+                sku: 'LIB-400',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[4].category_id,
@@ -203,7 +211,8 @@ async function seedDatabase() {
                 description: 'Pelota oficial para competencias',
                 price: 29.99,
                 stock: 150,
-                sku: 'FUT-300'
+                sku: 'FUT-300',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             },
             {
                 category_id: createdCategories[4].category_id,
@@ -211,7 +220,8 @@ async function seedDatabase() {
                 description: 'Bicicleta todo terreno 21 velocidades',
                 price: 499.99,
                 stock: 25,
-                sku: 'BIC-900'
+                sku: 'BIC-900',
+                image_path: 'https://placehold.co/600x400?text=Product\nImage'
             }
         ];
 
