@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productsApi from '../../../api/products';
+import { toast, Toaster } from "react-hot-toast";
+import ProductCard from '../components/ProductCard';
 
 export default function CatalogPage() {
+  const navigate = useNavigate();
   const defaultLimit = parseInt(localStorage.getItem('productsPerPage')) || 8;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -79,6 +83,7 @@ export default function CatalogPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Toaster position="top-right" />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h1 className="text-3xl font-bold text-gray-900">{TITLE}</h1>
         <div className="flex gap-2 flex-wrap items-center">
@@ -129,15 +134,7 @@ export default function CatalogPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div key={product.product_id} className="border rounded p-4 shadow hover:shadow-lg transition">
-              <img
-                src={product.image_path || '/images/products/default.jpg'}
-                alt={product.name}
-                className="w-full h-48 object-cover mb-4 rounded"/>
-              <h2 className="font-semibold text-lg">{product.name}</h2>
-              <p className="text-gray-600 text-sm mb-2">{product.category.name}</p>
-              <p className="font-bold text-indigo-600">${product.price}</p>
-            </div>
+            <ProductCard key={product.product_id} product={product} />
           ))}
         </div>
       )}
