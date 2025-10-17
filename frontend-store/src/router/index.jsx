@@ -7,7 +7,7 @@ import { PrivateRoute, PublicRoute } from '../auth/Guards.jsx';
 // Lazy load components for better performance
 const Home = lazy(() => import('../modules/home/pages/HomePage.jsx'));
 const Catalog = lazy(() => import('../modules/catalog/pages/CatalogPage.jsx'));
-const ProductDetail = lazy(() => import('../modules/catalog/pages/ProductDetailPage.jsx'));
+const ProductDetailPage = lazy(() => import('../modules/catalog/pages/ProductDetailPage.jsx'));
 const Categories = lazy(() => import('../modules/catalog/pages/CategoriesPage.jsx'));
 const CategoryProducts = lazy(() => import('../modules/catalog/pages/CategoryProductsPage.jsx'));
 
@@ -57,8 +57,8 @@ export const router = createBrowserRouter([
         element: <Catalog />
       },
       {
-        path: 'product/:id',
-        element: <ProductDetail />
+        path: 'products/:id',
+        element: <ProductDetailPage />
       },
       {
         path: 'categories',
