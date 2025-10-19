@@ -15,6 +15,7 @@ import ReviewModel from './review.js';
 import CouponModel from './coupon.js';
 import OrderModel from './order.js';
 import OrderItemModel from './orderItem.js';
+import OrderStatusHistoryModel from './orderStatusHistory.js';
 import UserSessionModel from './userSession.js';
 import PasswordResetTokenModel from './passwordResetToken.js';
 
@@ -32,6 +33,7 @@ const Review = ReviewModel(sequelize, DataTypes);
 const Coupon = CouponModel(sequelize, DataTypes);
 const Order = OrderModel(sequelize, DataTypes);
 const OrderItem = OrderItemModel(sequelize, DataTypes);
+const OrderStatusHistory = OrderStatusHistoryModel(sequelize, DataTypes);
 const UserSession = UserSessionModel(sequelize, DataTypes);
 const PasswordResetToken = PasswordResetTokenModel(sequelize, DataTypes);
 
@@ -50,6 +52,7 @@ const models = {
     Coupon,
     Order,
     OrderItem,
+    OrderStatusHistory,
     UserSession,
     PasswordResetToken
 };

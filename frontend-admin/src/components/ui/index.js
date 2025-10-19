@@ -8,6 +8,22 @@ export { Alert, AlertTitle, AlertDescription } from './Alert.jsx';
 export { Skeleton } from './Skeleton.jsx';
 export { Spinner } from './Spinner.jsx';
 
+// Form Components
+export { Select, selectVariants } from './Select.jsx';
+export { Textarea, textareaVariants } from './Textarea.jsx';
+
+// Table Components
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from './Table.jsx';
+
 // Dialog Components
 export {
   Dialog,
