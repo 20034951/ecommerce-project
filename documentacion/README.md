@@ -11,6 +11,7 @@
 7. [Base de Datos](./07-base-datos.md)
 8. [Testing](./08-testing.md)
 9. [Deployment](./09-deployment.md)
+10. [Sistema de Seeding](./10-seeding.md) 🆕
 
 ## Resumen Ejecutivo
 
@@ -67,6 +68,7 @@ ecommerce-project/
 - ✅ Reset de contraseñas por email
 - ✅ API REST documentada
 - ✅ Contenedorización con Docker
+- ✅ Sistema de seeding con Faker.js 🆕
 
 ### Tecnologías Utilizadas
 
@@ -79,6 +81,7 @@ ecommerce-project/
 - **JWT**: Autenticación stateless
 - **Bcrypt**: Hash de contraseñas
 - **Resend**: Servicio de emails
+- **Faker.js**: Generación de datos de prueba 🆕
 - **Jest**: Testing framework
 
 #### Frontend
@@ -103,4 +106,5 @@ ecommerce-project/
 - [Configuración inicial](./05-docker.md#configuración-inicial)
 - [Variables de entorno](./06-variables-entorno.md)
 - [API Endpoints](./02-backend.md#endpoints)
+- [Sistema de Seeding](./10-seeding.md) 🆕
 - [Guía de desarrollo](./09-deployment.md#desarrollo)

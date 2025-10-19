@@ -142,8 +142,15 @@ CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     address_id INT NOT NULL,
-    status ENUM('pending','paid','shipped','delivered','cancelled') DEFAULT 'pending',
+    status ENUM('pending','paid','processing','shipped','delivered','cancelled') DEFAULT 'pending',
     total_amount DECIMAL(10,2) NOT NULL,
+    tracking_number VARCHAR(100) UNIQUE,
+    tracking_url VARCHAR(500),
+    estimated_delivery DATETIME,
+    shipped_at DATETIME,
+    delivered_at DATETIME,
+    cancelled_at DATETIME,
+    cancellation_reason TEXT,
     shipping_method_id INT,
     coupon_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -162,6 +169,18 @@ CREATE TABLE IF NOT EXISTS order_item (
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE RESTRICT
+);
+
+-- Historial de estados de órdenes
+CREATE TABLE IF NOT EXISTS order_status_history (
+    history_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    status ENUM('pending','paid','processing','shipped','delivered','cancelled') NOT NULL,
+    notes TEXT,
+    changed_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by) REFERENCES user(user_id) ON DELETE SET NULL
 );
 
 -- Sesiones de usuario (para JWT)
@@ -201,6 +220,8 @@ CREATE INDEX idx_product_sku ON product(sku);
 CREATE INDEX idx_product_category ON product(category_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_tracking ON orders(tracking_number);
+CREATE INDEX idx_order_status_history_order ON order_status_history(order_id);
 CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
 CREATE INDEX idx_password_reset_tokens_user ON password_reset_tokens(user_id);
 CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_at);

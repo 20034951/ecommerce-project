@@ -1,0 +1,176 @@
+{
+	"info": {
+		"_postman_id": "ecommerce-seeds-collection",
+		"name": "E-commerce Seeds API",
+		"description": "Colección para ejecutar seeders de la base de datos del proyecto e-commerce",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5005",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Seeds",
+			"item": [
+				{
+					"name": "🌱 Seed All (Todos los Seeders)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "all"]
+						},
+						"description": "Ejecuta todos los seeders en orden:\n1. Usuarios (12)\n2. Categorías (8)\n3. Productos (~50)\n4. Métodos de envío (4)\n5. Pedidos (60-100)\n\nGenera datos completos incluyendo pedidos con todos los estados y tracking numbers."
+					},
+					"response": []
+				},
+				{
+					"name": "👥 Seed Users Only",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "users"]
+						},
+						"description": "Crea solo usuarios y sus direcciones:\n- 1 Admin\n- 1 Usuario de prueba\n- 10 Clientes con datos de Faker"
+					},
+					"response": []
+				},
+				{
+					"name": "📁 Seed Categories Only",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "categories"]
+						},
+						"description": "Crea solo categorías de productos (8 categorías)"
+					},
+					"response": []
+				},
+				{
+					"name": "📦 Seed Products Only",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "products"]
+						},
+						"description": "Crea productos en todas las categorías (~50 productos con datos realistas)"
+					},
+					"response": []
+				},
+				{
+					"name": "🛒 Seed Orders Only",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "orders"]
+						},
+						"description": "Crea pedidos con todos los estados:\n- Pending\n- Paid\n- Processing\n- Shipped (con tracking)\n- Delivered (con tracking)\n- Cancelled\n\nRequiere usuarios, productos y métodos de envío existentes."
+					},
+					"response": []
+				},
+				{
+					"name": "🔄 Seed Legacy (Antiguo)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/legacy",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "legacy"]
+						},
+						"description": "Ejecuta el seeder antiguo (seedDatabase.js original)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Status",
+			"item": [
+				{
+					"name": "📊 Database Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/seed/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "seed", "status"]
+						},
+						"description": "Obtiene estadísticas de los datos actuales en la base de datos:\n- Total de usuarios\n- Total de categorías\n- Total de productos\n- Total de pedidos\n- Total de items de pedidos\n- Total de historial de estados\n- etc."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth - Login Tests",
+			"item": [
+				{
+					"name": "🔐 Login Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@ecommerce.com\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login con usuario administrador creado por los seeders"
+					},
+					"response": []
+				},
+				{
+					"name": "🔐 Login Test User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@ecommerce.com\",\n  \"password\": \"Customer123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login con usuario de prueba creado por los seeders"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -75,6 +75,8 @@ const startServer = async () => {
     const authRoutes = (await import("./routes/register.js")).default;
     const passwordResetRoutes = (await import("./routes/passwordReset.js"))
       .default;
+    const orderRoutes = (await import("./routes/order.js")).default;
+    const seedRoutes = (await import("./routes/seed.js")).default;
 
     // Montar rutas
     app.use("/api/auth", authRoutes);
@@ -116,10 +118,14 @@ const startServer = async () => {
 
       // Iniciar limpieza automática de tokens
       tokenCleanup.startAutomaticCleanup();
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("\n💡 Para poblar la base de datos con datos de prueba:");
-        console.log(`   POST http://localhost:${port}/api/seed`);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n💡 Rutas de seeding disponibles:');
+        console.log(`   POST http://localhost:${port}/api/seed/all - Ejecutar todos los seeders`);
+        console.log(`   POST http://localhost:${port}/api/seed/users - Solo usuarios`);
+        console.log(`   POST http://localhost:${port}/api/seed/orders - Solo pedidos`);
+        console.log(`   POST http://localhost:${port}/api/seed/legacy - Seeder antiguo`);
+        console.log(`   GET  http://localhost:${port}/api/seed/status - Estado de la BD`);
       }
     });
   } catch (err) {
