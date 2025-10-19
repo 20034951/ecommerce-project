@@ -22,12 +22,41 @@ export default (sequelize, DataTypes) => {
             }
         },
         status: {
-            type: DataTypes.ENUM('pending', 'paid', 'shipped', 'delivered', 'cancelled'),
+            type: DataTypes.ENUM('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'),
             defaultValue: 'pending'
         },
         total_amount: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false
+        },
+        tracking_number: {
+            type: DataTypes.STRING(100),
+            allowNull: true,
+            unique: true
+        },
+        tracking_url: {
+            type: DataTypes.STRING(500),
+            allowNull: true
+        },
+        estimated_delivery: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        shipped_at: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        delivered_at: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        cancelled_at: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        cancellation_reason: {
+            type: DataTypes.TEXT,
+            allowNull: true
         },
         shipping_method_id: {
             type: DataTypes.INTEGER,
@@ -72,6 +101,10 @@ export default (sequelize, DataTypes) => {
         Order.hasMany(models.OrderItem, {
             foreignKey: 'order_id',
             as: 'items'
+        });
+        Order.hasMany(models.OrderStatusHistory, {
+            foreignKey: 'order_id',
+            as: 'statusHistory'
         });
     };
 

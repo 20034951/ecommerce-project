@@ -18,7 +18,7 @@ router.post('/login',
     log('POST /login payload:', req.body);
     
     const { usernameOrEmail, password } = req.body;
-    if(!usernameOrEmail || !password) throw new HttpError('Missing credentials', 400);
+    if(!usernameOrEmail || !password) throw new HttpError(400, 'Missing credentials');
 
     const tokens = await login({ usernameOrEmail, password });
 

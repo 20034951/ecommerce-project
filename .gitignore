@@ -13,3 +13,4 @@ mysql_data/
 frontend-store/build/
 frontend-admin/build/
 /.vscode
+tareas/*
