@@ -1,8 +1,10 @@
+// backend/src/routes/order.js
 import express from 'express';
 import orderService from '../services/orderService.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import HttpError from '../utils/HttpError.js';
+import db from '../models/index.js';
 
 // ======= CHECKOUT CON LOGIN (EG4-19 / EG4-21) =======
 import { randomUUID } from 'crypto';
@@ -250,12 +252,23 @@ const isNonEmpty = v => typeof v === 'string' && v.trim().length > 0;
 const isEmail = v => isNonEmpty(v) && /\S+@\S+\.\S+/.test(v);
 const isPhone = v => isNonEmpty(v) && v.replace(/[^\d]/g, '').length >= 8;
 
+/**
+ * @route   POST /api/orders/checkout
+ * @desc    Simulación de compra con datos del cliente (genera número de pedido único)
+ * @access  Private (Usuario autenticado)
+ */
 router.post(
     '/checkout',
-    authenticateToken,           // 👈 requiere JWT
+    authenticateToken,
     asyncHandler(async (req, res) => {
         const userId = req.user.user_id;
-        const { customer, items, shippingMethod, notes } = req.body || {};
+        const {
+            customer,
+            items,
+            shippingMethod,
+            notes,
+            addressId: addressIdFromBody
+        } = req.body || {};
 
         const errors = [];
         if (!customer) errors.push('Faltan datos de cliente');
@@ -266,10 +279,51 @@ router.post(
             if (!isPhone(customer.phone)) errors.push('Teléfono inválido');
             if (!isNonEmpty(customer.address)) errors.push('Dirección requerida');
             if (!isNonEmpty(customer.city)) errors.push('Ciudad requerida');
-            if (!isNonEmpty(customer.zip)) errors.push('Código postal requerido');
+            // zip es opcional en tu esquema (postal_code permite NULL)
         }
         if (errors.length) return res.status(400).json({ errors });
 
+        // ——— Resolver addressId usando la tabla user_address ———
+        let addressId = addressIdFromBody ?? null;
+
+        if (!addressId) {
+            // 1) intentar usar alguna existente del usuario
+            const existing = await db.UserAddress.findOne({
+                where: { user_id: userId },
+                order: [['address_id', 'ASC']]
+            });
+
+            if (existing) {
+                addressId = existing.address_id;
+            }
+        }
+
+        if (!addressId) {
+            // 2) crear una dirección mínima VALIDA para tu esquema real
+            const created = await db.UserAddress.create({
+                user_id: userId,
+                address_line: customer.address,
+                city: customer.city,
+                state: customer.state || null,
+                country: customer.country || 'GT',
+                type: 'shipping',
+                postal_code: customer.zip || null
+            });
+
+            addressId = created.address_id;
+        }
+
+        const validAddress = await db.UserAddress.findOne({
+            where: { address_id: addressId, user_id: userId }
+        });
+
+        if (!validAddress) {
+            return res.status(500).json({
+                message: 'No se pudo resolver addressId para el usuario',
+            });
+        }
+
+        // Normalizar items y calcular total
         const normalizedItems = items.map(i => ({
             productId: Number(i.productId),
             name: String(i.name ?? ''),
@@ -277,14 +331,28 @@ router.post(
             quantity: Number(i.quantity ?? 0),
         }));
 
+        const totalAmount = normalizedItems.reduce(
+            (sum, i) => sum + (Number(i.price) * Number(i.quantity)),
+            0
+        );
+
         const orderNumber = genOrderNumber();
 
         const payload = {
-            orderNumber,           // si tu service ya genera, lo ignorará o lo guardará
+            // Lo que tu service espera:
+            addressId,                  // ✅ requerido por createOrder
+            items: normalizedItems,     // ✅
+            totalAmount,                // ✅ requerido por el modelo Order
+
+            // Opcionales (tu service los ignora o usa si están):
+            shippingMethodId: null,
+            couponId: null,
+
+            // Metadatos extra
+            orderNumber,
             customer,
-            items: normalizedItems,
             shippingMethod: shippingMethod ?? 'standard',
-            notes: notes ?? null,
+            notes: notes ?? null
         };
 
         const order = await orderService.createOrder(payload, userId);
@@ -296,4 +364,5 @@ router.post(
         });
     })
 );
+
 export default router;

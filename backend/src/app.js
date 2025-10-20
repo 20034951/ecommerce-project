@@ -83,7 +83,7 @@ const startServer = async () => {
     const orderRoutes = (await import("./routes/order.js")).default;
     const shippingMethodRoutes = (await import("./routes/shippingMethod.js")).default;
     const addressRoutes = (await import("./routes/address.js")).default;
-    const seedRoutes = (await import("./routes/seed.js")).default;
+    // ⚠️ OJO: NO importamos aquí ./routes/seed.js para evitar traer faker al boot
 
     // Montar rutas
     app.use("/api/auth", authRoutes);
@@ -109,8 +109,16 @@ const startServer = async () => {
         }
       });
 
-      // endpoints granulares
-      app.use("/api/seed", seedRoutes);
+      // endpoints granulares (lazy import del router de seeds)
+      app.use("/api/seed", async (req, res, next) => {
+        try {
+          const seedRoutes = (await import("./routes/seed.js")).default; // ← se carga SOLO cuando se usa
+          return seedRoutes(req, res, next); // los routers de Express son funciones (req,res,next)
+        } catch (e) {
+          console.error("Fallo al cargar rutas de seed:", e);
+          return res.status(500).json({ error: "Rutas de seed no disponibles" });
+        }
+      });
     }
 
     // Sincronizar BD
