@@ -1,27 +1,29 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 class EmailService {
-    constructor() {
-        this.resend = new Resend(process.env.RESEND_API_KEY);
-        // Para desarrollo, usar el dominio verificado de Resend
-        this.fromEmail = 'onboarding@resend.dev';
-        this.isDevelopment = process.env.NODE_ENV === 'development';
-    }
+  constructor() {
+    this.resend = new Resend(process.env.RESEND_API_KEY);
+    // Para desarrollo, usar el dominio verificado de Resend
+    this.fromEmail = "onboarding@resend.dev";
+    this.isDevelopment = process.env.NODE_ENV === "development";
+  }
 
-    async sendPasswordResetEmail(to, resetToken, userName) {
-        try {
-            // En desarrollo, solo loggar en lugar de enviar realmente
-            if (this.isDevelopment) {
-                console.log('📧 [DEV MODE] Password Reset Email:');
-                console.log(`   To: ${to}`);
-                console.log(`   Token: ${resetToken}`);
-                console.log(`   Reset URL: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`);
-                console.log(`   User: ${userName || 'Usuario'}`);
-            }
+  async sendPasswordResetEmail(to, resetToken, userName) {
+    try {
+      // En desarrollo, solo loggar en lugar de enviar realmente
+      if (this.isDevelopment) {
+        console.log("📧 [DEV MODE] Password Reset Email:");
+        console.log(`   To: ${to}`);
+        console.log(`   Token: ${resetToken}`);
+        console.log(
+          `   Reset URL: ${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+        );
+        console.log(`   User: ${userName || "Usuario"}`);
+      }
 
-            const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-            
-            const htmlContent = `
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+      const htmlContent = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -51,7 +53,7 @@ class EmailService {
                             <h1>Recuperación de Contraseña</h1>
                         </div>
                         <div class="content">
-                            <h2>Hola ${userName || 'Usuario'},</h2>
+                            <h2>Hola ${userName || "Usuario"},</h2>
                             <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p>
                             <p>Haz clic en el siguiente botón para crear una nueva contraseña:</p>
                             
@@ -80,10 +82,10 @@ class EmailService {
                 </html>
             `;
 
-            const textContent = `
+      const textContent = `
                 Recuperación de Contraseña
 
-                Hola ${userName || 'Usuario'},
+                Hola ${userName || "Usuario"},
 
                 Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
 
@@ -98,42 +100,42 @@ class EmailService {
                 Si tienes problemas, contacta con nuestro equipo de soporte.
             `;
 
-            const { data, error } = await this.resend.emails.send({
-                from: this.fromEmail,
-                to: [to, "delivered@resend.dev"],
-                subject: 'Recuperación de Contraseña - E-commerce',
-                html: htmlContent,
-                text: textContent,
-                tags: [
-                    {
-                        name: 'category',
-                        value: 'password_reset'
-                    }
-                ]
-            });
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [to, "delivered@resend.dev"],
+        subject: "Recuperación de Contraseña - E-commerce",
+        html: htmlContent,
+        text: textContent,
+        tags: [
+          {
+            name: "category",
+            value: "password_reset",
+          },
+        ],
+      });
 
-            if (error) {
-                throw new Error(`Error sending email: ${error.message}`);
-            }
+      if (error) {
+        throw new Error(`Error sending email: ${error.message}`);
+      }
 
-            return { success: true, messageId: data.id };
-        } catch (error) {
-            console.error('Email service error:', error);
-            throw error;
-        }
+      return { success: true, messageId: data.id };
+    } catch (error) {
+      console.error("Email service error:", error);
+      throw error;
     }
+  }
 
-    async sendPasswordChangedConfirmation(to, userName) {
-        try {
-            // En desarrollo, solo loggar en lugar de enviar realmente
-            if (this.isDevelopment) {
-                console.log('📧 [DEV MODE] Password Changed Confirmation Email:');
-                console.log(`   To: ${to}`);
-                console.log(`   User: ${userName || 'Usuario'}`);
-                console.log(`   Message: Contraseña cambiada exitosamente`);
-            }
+  async sendPasswordChangedConfirmation(to, userName) {
+    try {
+      // En desarrollo, solo loggar en lugar de enviar realmente
+      if (this.isDevelopment) {
+        console.log("📧 [DEV MODE] Password Changed Confirmation Email:");
+        console.log(`   To: ${to}`);
+        console.log(`   User: ${userName || "Usuario"}`);
+        console.log(`   Message: Contraseña cambiada exitosamente`);
+      }
 
-            const htmlContent = `
+      const htmlContent = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -154,11 +156,11 @@ class EmailService {
                             <h1>✅ Contraseña Actualizada</h1>
                         </div>
                         <div class="content">
-                            <h2>Hola ${userName || 'Usuario'},</h2>
+                            <h2>Hola ${userName || "Usuario"},</h2>
                             <div class="success">
                                 <p><strong>Tu contraseña ha sido cambiada exitosamente.</strong></p>
                             </div>
-                            <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString('es-ES')}.</p>
+                            <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString("es-ES")}.</p>
                             <p>Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.</p>
                         </div>
                         <div class="footer">
@@ -169,40 +171,94 @@ class EmailService {
                 </html>
             `;
 
-            const textContent = `
+      const textContent = `
                 Contraseña Actualizada
 
-                Hola ${userName || 'Usuario'},
+                Hola ${userName || "Usuario"},
 
-                Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString('es-ES')}.
+                Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString("es-ES")}.
 
                 Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.
             `;
 
-            const { data, error } = await this.resend.emails.send({
-                from: this.fromEmail,
-                to: [to, "delivered@resend.dev"],
-                subject: 'Contraseña Actualizada - E-commerce',
-                html: htmlContent,
-                text: textContent,
-                tags: [
-                    {
-                        name: 'category',
-                        value: 'password_changed'
-                    }
-                ]
-            });
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [to, "delivered@resend.dev"],
+        subject: "Contraseña Actualizada - E-commerce",
+        html: htmlContent,
+        text: textContent,
+        tags: [
+          {
+            name: "category",
+            value: "password_changed",
+          },
+        ],
+      });
 
-            if (error) {
-                throw new Error(`Error sending email: ${error.message}`);
-            }
+      if (error) {
+        throw new Error(`Error sending email: ${error.message}`);
+      }
 
-            return { success: true, messageId: data.id };
-        } catch (error) {
-            console.error('Email service error:', error);
-            throw error;
-        }
+      return { success: true, messageId: data.id };
+    } catch (error) {
+      console.error("Email service error:", error);
+      throw error;
     }
+  }
+
+  async sendOrderStatusEmail(to, userName, orderId, status, totalAmount) {
+    try {
+      if (this.isDevelopment) {
+        console.log("📦 [DEV MODE] Order Status Update Email:");
+        console.log(`   To: ${to}`);
+        console.log(`   User: ${userName}`);
+        console.log(`   Order: #${orderId}`);
+        console.log(`   Status: ${status}`);
+        console.log(`   Total: $${totalAmount}`);
+      }
+
+      const statusMessages = {
+        pending: "Pendiente de pago",
+        paid: "Pago recibido",
+        shipped: "Enviado 🚚",
+        delivered: "Entregado ✅",
+        cancelled: "Cancelado ❌",
+      };
+
+      const htmlContent = `
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: auto; padding: 20px;">
+                    <h2>Hola ${userName || "Cliente"},</h2>
+                    <p>El estado de tu pedido <strong>#${orderId}</strong> ha cambiado.</p>
+                    <p><strong>Nuevo estado:</strong> ${statusMessages[status] || status}</p>
+                    <p><strong>Total:</strong> $${totalAmount}</p>
+                    <p>Gracias por confiar en nosotros 💙</p>
+                    <p>— Equipo E-commerce</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [to, "delivered@resend.dev"],
+        subject: `Actualización de Pedido #${orderId} - ${statusMessages[status] || status}`,
+        html: htmlContent,
+        text: `Hola ${userName || "Cliente"}, tu pedido #${orderId} ahora está "${statusMessages[status] || status}".`,
+        tags: [{ name: "category", value: "order_status_update" }],
+      });
+
+      if (error) {
+        throw new Error(`Error sending email: ${error.message}`);
+      }
+
+      return { success: true, messageId: data.id };
+    } catch (error) {
+      console.error("Email service error:", error);
+      throw error;
+    }
+  }
 }
 
 export default new EmailService();
