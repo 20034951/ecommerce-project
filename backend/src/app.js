@@ -76,6 +76,7 @@ const startServer = async () => {
     const passwordResetRoutes = (await import("./routes/passwordReset.js"))
       .default;
 <<<<<<< HEAD
+<<<<<<< HEAD
     const orderRoutes = (await import("./routes/order.js")).default;
     const shippingMethodRoutes = (await import("./routes/shippingMethod.js"))
       .default;
@@ -83,6 +84,8 @@ const startServer = async () => {
     const seedRoutes = (await import("./routes/seed.js")).default;
 =======
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
 
     // Montar rutas
     app.use("/api/auth", authRoutes);
@@ -93,10 +96,13 @@ const startServer = async () => {
     app.use("/api/customers", customerRoutes);
     app.use("/api/orders", orderRoutes);
 <<<<<<< HEAD
+<<<<<<< HEAD
     app.use("/api/shipping-methods", shippingMethodRoutes);
     app.use("/api/addresses", addressRoutes);
 =======
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
 
     // Ruta para poblar la base de datos (solo desarrollo)
     if (process.env.NODE_ENV === "development") {
@@ -128,18 +134,23 @@ const startServer = async () => {
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(
 <<<<<<< HEAD
+<<<<<<< HEAD
         `📡 Variables de entorno cargadas: ${
           process.env.NODE_ENV || "desarrollo"
         }`
 =======
         `📡 Variables de entorno cargadas: ${process.env.NODE_ENV || "desarrollo"}`
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+        `📡 Variables de entorno cargadas: ${process.env.NODE_ENV || "desarrollo"}`
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
       );
 
       // Iniciar limpieza automática de tokens
       tokenCleanup.startAutomaticCleanup();
 
       if (process.env.NODE_ENV === "development") {
+<<<<<<< HEAD
 <<<<<<< HEAD
         console.log("\n💡 Rutas de seeding disponibles:");
         console.log(
@@ -158,6 +169,8 @@ const startServer = async () => {
           `   GET  http://localhost:${port}/api/seed/status - Estado de la BD`
         );
 =======
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
         console.log("\n💡 Para poblar la base de datos con datos de prueba:");
         console.log(`   POST http://localhost:${port}/api/seed`);
 >>>>>>> b0f7616 (Add: order email notification and update README)
