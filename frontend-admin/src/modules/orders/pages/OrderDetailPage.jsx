@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -22,9 +22,14 @@ import {
   XCircle,
   CreditCard,
   AlertCircle,
-  DollarSign
+  DollarSign,
+  Coins,
+  ExternalLink
 } from 'lucide-react';
-import { UpdateOrderStatusForm } from '../components';
+import { UpdateOrderStatusForm, OrderTimeline } from '../components';
+import { useOrder } from '../../../hooks/useOrder';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ordersApi } from '../../../api/ordersApi';
 
 const STATUS_CONFIG = {
   pending: {
@@ -62,42 +67,29 @@ const STATUS_CONFIG = {
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
+  
+  // Usar el hook useOrder para obtener los datos
+  const { data: order, isLoading, error } = useOrder(id);
 
-  useEffect(() => {
-    fetchOrderDetails();
-  }, [id]);
-
-  const fetchOrderDetails = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      // TODO: Reemplazar con llamada API real cuando esté disponible
-      // const response = await ordersApi.getOrderById(id);
-      // setOrder(response.data);
-      console.log('Fetching order:', id);
-    } catch (err) {
-      console.error('Error fetching order:', err);
-      setError(err.response?.data?.error || 'Error al cargar el pedido');
-    } finally {
-      setIsLoading(false);
+  // Mutation para actualizar el estado del pedido
+  const updateStatusMutation = useMutation({  
+    mutationFn: (statusData) => ordersApi.updateOrderStatus(id, statusData),
+    onSuccess: () => {
+      // Invalidar las queries para refrescar los datos
+      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+    },
+    onError: (error) => {
+      console.error('Error al actualizar estado:', error);
     }
-  };
+  });
 
   const handleUpdateStatus = async (statusData) => {
     try {
-      setIsUpdating(true);
-      // TODO: Reemplazar con llamada API real cuando esté disponible
-      // await ordersApi.updateOrderStatus(id, statusData);
-      console.log('Updating order status:', statusData);
-      await fetchOrderDetails();
+      await updateStatusMutation.mutateAsync(statusData);
     } catch (error) {
       throw new Error(error.response?.data?.error || 'Error al actualizar el estado');
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -124,7 +116,10 @@ export default function OrderDetailPage() {
   };
 
   const formatCurrency = (amount) => {
-    return `$${parseFloat(amount).toFixed(2)}`;
+    return `Q. ${parseFloat(amount).toLocaleString('es-GT', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
   };
 
   if (isLoading) {
@@ -147,7 +142,9 @@ export default function OrderDetailPage() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Error al cargar el pedido
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {error?.message || 'No se pudo cargar el pedido'}
+            </p>
             <Link
               to="/admin/orders"
               className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 dark:text-primary-400"
@@ -159,6 +156,10 @@ export default function OrderDetailPage() {
         </Card>
       </div>
     );
+  }
+  
+  if (!order) {
+    return null;
   }
 
   return (
@@ -188,46 +189,68 @@ export default function OrderDetailPage() {
           </div>
           {order && getStatusBadge(order.status)}
         </div>
-      </div>
+      </div> 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Products */}
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Productos</CardTitle>
+            <CardHeader className="bg-emerald-100 dark:bg-emerald-900/50 border-b border-emerald-200 dark:border-emerald-800">
+              <CardTitle className="text-emerald-900 dark:text-emerald-100 flex items-center">
+                <div className="p-2 bg-emerald-200 dark:bg-emerald-800 rounded-lg mr-2">
+                  <Package className="h-5 w-5 text-emerald-700 dark:text-emerald-200" />
+                </div>
+                Productos
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {order?.items ? (
                 <div className="space-y-4">
-                  {order.items.map((item) => (
-                    <div
-                      key={item.order_item_id}
-                      className="flex items-center gap-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-                    >
-                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                        <Package className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                  {order.items.map((item) => {
+                    const subtotal = item.price * item.quantity;
+                    return (
+                      <div
+                        key={item.order_item_id}
+                        className="flex items-center gap-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                      >
+                        <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                          <Package className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                            {item.product?.name || 'Producto'}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            SKU: {item.product?.sku || 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Cantidad: {item.quantity} × {formatCurrency(item.price)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Subtotal</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {formatCurrency(subtotal)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-white">
-                          {item.product?.name || 'Producto'}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          SKU: {item.product?.sku || 'N/A'}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Cantidad: {item.quantity}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {formatCurrency(item.price)}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">c/u</p>
-                      </div>
+                    );
+                  })}
+                  
+                  {/* Total de productos */}
+                  <div className="pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        Total de Productos
+                      </span>
+                      <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {formatCurrency(
+                          order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                        )}
+                      </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ) : (
                 <p className="text-center text-gray-500 dark:text-gray-400 py-8">
@@ -237,47 +260,72 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Status History */}
-          {order?.statusHistory && order.statusHistory.length > 0 && (
+          {/* Tracking Information */}
+          {(order.tracking_number || order.tracking_url || order.estimated_delivery) && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">
+              <CardHeader className="bg-blue-100 dark:bg-blue-900/50 border-b border-blue-200 dark:border-blue-800">
+                <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center">
+                  <div className="p-2 bg-blue-200 dark:bg-blue-800 rounded-lg mr-2">
+                    <Truck className="h-5 w-5 text-blue-700 dark:text-blue-200" />
+                  </div>
+                  Información de Envío
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4">
+                {order.tracking_number && (
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Número de Seguimiento
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 font-mono">
+                      {order.tracking_number}
+                    </p>
+                  </div>
+                )}
+                {order.tracking_url && (
+                  <div>
+                    <a
+                      href={order.tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Rastrear envío
+                    </a>
+                  </div>
+                )}
+                {order.estimated_delivery && (
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Fecha Estimada de Entrega
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {new Date(order.estimated_delivery).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Status History with OrderTimeline */}
+          {order.statusHistory && order.statusHistory.length > 0 && (
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <CardHeader className="bg-purple-100 dark:bg-purple-900/50 border-b border-purple-200 dark:border-purple-800">
+                <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center">
+                  <div className="p-2 bg-purple-200 dark:bg-purple-800 rounded-lg mr-2">
+                    <Clock className="h-5 w-5 text-purple-700 dark:text-purple-200" />
+                  </div>
                   Historial de Estados
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {order.statusHistory.map((history, index) => (
-                    <div key={history.id || index} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center">
-                          {getStatusBadge(history.status).props.children[0]}
-                        </div>
-                        {index < order.statusHistory.length - 1 && (
-                          <div className="w-0.5 h-full bg-gray-200 dark:bg-gray-700 my-2"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-center justify-between mb-1">
-                          {getStatusBadge(history.status)}
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(history.created_at)}
-                          </span>
-                        </div>
-                        {history.notes && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                            {history.notes}
-                          </p>
-                        )}
-                        {history.changed_by && (
-                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            Por: {history.changed_by}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent className="pt-4">
+                <OrderTimeline history={order.statusHistory} />
               </CardContent>
             </Card>
           )}
@@ -297,31 +345,34 @@ export default function OrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Update Status Form */}
-          {order && (
-            <UpdateOrderStatusForm
-              orderId={order.order_id}
-              currentStatus={order.status}
-              onSubmit={handleUpdateStatus}
-              isLoading={isUpdating}
-            />
-          )}
+          <UpdateOrderStatusForm
+            orderId={order.order_id}
+            currentStatus={order.status}
+            onSubmit={handleUpdateStatus}
+            isLoading={updateStatusMutation.isPending}
+          />
 
           {/* Order Summary */}
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Resumen</CardTitle>
+            <CardHeader className="bg-amber-100 dark:bg-amber-900/50 border-b border-amber-200 dark:border-amber-800">
+              <CardTitle className="text-amber-900 dark:text-amber-100 flex items-center">
+                <div className="p-2 bg-amber-200 dark:bg-amber-800 rounded-lg mr-2">
+                  <Coins className="h-5 w-5 text-amber-700 dark:text-amber-200" />
+                </div>
+                Resumen
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Total:</span>
-                <span className="text-gray-900 dark:text-white font-semibold">
+            <CardContent className="space-y-3 pt-4">
+              <div className="flex justify-between text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">Total:</span>
+                <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">
                   {order ? formatCurrency(order.total_amount) : '$0.00'}
                 </span>
               </div>
               {order?.shippingMethod && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Método de envío:</span>
-                  <span className="text-gray-900 dark:text-white">
+                <div className="flex justify-between text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Método de envío:</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">
                     {order.shippingMethod.name}
                   </span>
                 </div>
@@ -332,33 +383,35 @@ export default function OrderDetailPage() {
           {/* Customer Info */}
           {order?.user && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white flex items-center">
-                  <User className="h-5 w-5 mr-2" />
+              <CardHeader className="bg-indigo-100 dark:bg-indigo-900/50 border-b border-indigo-200 dark:border-indigo-800">
+                <CardTitle className="text-indigo-900 dark:text-indigo-100 flex items-center">
+                  <div className="p-2 bg-indigo-200 dark:bg-indigo-800 rounded-lg mr-2">
+                    <User className="h-5 w-5 text-indigo-700 dark:text-indigo-200" />
+                  </div>
                   Cliente
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <CardContent className="space-y-3 pt-4">
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                     {order.user.name}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-gray-400" />
+                <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <Mail className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   <a
                     href={`mailto:${order.user.email}`}
-                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                    className="text-indigo-700 hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200 font-medium"
                   >
                     {order.user.email}
                   </a>
                 </div>
                 {order.user.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <Phone className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                     <a
                       href={`tel:${order.user.phone}`}
-                      className="text-gray-600 dark:text-gray-400"
+                      className="text-indigo-700 hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200 font-medium"
                     >
                       {order.user.phone}
                     </a>
@@ -371,22 +424,30 @@ export default function OrderDetailPage() {
           {/* Shipping Address */}
           {order?.address && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
+              <CardHeader className="bg-rose-100 dark:bg-rose-900/50 border-b border-rose-200 dark:border-rose-800">
+                <CardTitle className="text-rose-900 dark:text-rose-100 flex items-center">
+                  <div className="p-2 bg-rose-200 dark:bg-rose-800 rounded-lg mr-2">
+                    <MapPin className="h-5 w-5 text-rose-700 dark:text-rose-200" />
+                  </div>
                   Dirección de Envío
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-gray-900 dark:text-white">
-                  {order.address.address_line}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {order.address.city}, {order.address.state || ''}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {order.address.country}
-                </p>
+              <CardContent className="space-y-2 pt-4">
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {order.address.address_line}
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {order.address.city}, {order.address.state || ''}
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {order.address.country}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

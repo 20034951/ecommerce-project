@@ -76,6 +76,7 @@ const startServer = async () => {
     const passwordResetRoutes = (await import("./routes/passwordReset.js"))
       .default;
     const orderRoutes = (await import("./routes/order.js")).default;
+    const shippingMethodRoutes = (await import("./routes/shippingMethod.js")).default;
     const seedRoutes = (await import("./routes/seed.js")).default;
 
     // Montar rutas
@@ -86,6 +87,7 @@ const startServer = async () => {
     app.use("/api/users", userRoutes);
     app.use("/api/customers", customerRoutes);
     app.use("/api/orders", orderRoutes);
+    app.use("/api/shipping-methods", shippingMethodRoutes);
 
     // Ruta para poblar la base de datos (solo desarrollo)
     if (process.env.NODE_ENV === "development") {
@@ -98,6 +100,7 @@ const startServer = async () => {
           res.status(500).json({ error: "Error al poblar la base de datos" });
         }
       });
+      app.use("/api/seed", seedRoutes);
     }
 
     // Sincronizar BD
