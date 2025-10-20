@@ -55,12 +55,14 @@
 ## ⚡ Inicio Rápido
 
 ### 1. Clonar el Repositorio
+
 ```bash
 git clone https://github.com/tu-usuario/ecommerce-project.git
 cd ecommerce-project
 ```
 
 ### 2. Configurar Variables de Entorno
+
 ```bash
 # Copiar plantilla de variables de entorno
 cp .env.example .env
@@ -70,6 +72,7 @@ nano .env  # o tu editor preferido
 ```
 
 ### 3. Iniciar con Docker
+
 ```bash
 # Iniciar todos los servicios
 docker compose up --build
@@ -79,6 +82,7 @@ docker compose up -d --build
 ```
 
 ### 4. Acceder a los Servicios
+
 - 🛍️ **Tienda**: http://localhost:3000
 - ⚙️ **Panel Admin**: http://localhost:3001
 - 🔧 **API Backend**: http://localhost:5005
@@ -88,23 +92,26 @@ docker compose up -d --build
 ## 📚 Documentación Completa
 
 ### 📖 Guías Principales
-| Documento | Descripción | 
-|-----------|-------------|
-| **[🏗️ Arquitectura](./documentacion/01-arquitectura.md)** | Visión general del sistema, componentes y patrones |
-| **[🔧 Backend API](./documentacion/02-backend.md)** | Documentación completa del API REST |
-| **[👨‍💼 Frontend Admin](./documentacion/03-frontend-admin.md)** | Panel administrativo y sus funcionalidades |
-| **[🛍️ Frontend Store](./documentacion/04-frontend-store.md)** | Tienda online y experiencia del cliente |
+
+| Documento                                                     | Descripción                                        |
+| ------------------------------------------------------------- | -------------------------------------------------- |
+| **[🏗️ Arquitectura](./documentacion/01-arquitectura.md)**     | Visión general del sistema, componentes y patrones |
+| **[🔧 Backend API](./documentacion/02-backend.md)**           | Documentación completa del API REST                |
+| **[👨‍💼 Frontend Admin](./documentacion/03-frontend-admin.md)** | Panel administrativo y sus funcionalidades         |
+| **[🛍️ Frontend Store](./documentacion/04-frontend-store.md)** | Tienda online y experiencia del cliente            |
 
 ### 🚀 Operaciones y Desarrollo
-| Documento | Descripción |
-|-----------|-------------|
-| **[🐳 Docker](./documentacion/05-docker.md)** | Guía completa de contenedores y despliegue |
+
+| Documento                                                              | Descripción                                    |
+| ---------------------------------------------------------------------- | ---------------------------------------------- |
+| **[🐳 Docker](./documentacion/05-docker.md)**                          | Guía completa de contenedores y despliegue     |
 | **[⚙️ Variables de Entorno](./documentacion/06-variables-entorno.md)** | Configuración detallada de todas las variables |
-| **[🗄️ Base de Datos](./documentacion/07-base-datos.md)** | Esquema, modelos y optimizaciones |
-| **[🧪 Testing](./documentacion/08-testing.md)** | Estrategias de testing y guías |
-| **[🚀 Deployment](./documentacion/09-deployment.md)** | Despliegue en producción y CI/CD |
+| **[🗄️ Base de Datos](./documentacion/07-base-datos.md)**               | Esquema, modelos y optimizaciones              |
+| **[🧪 Testing](./documentacion/08-testing.md)**                        | Estrategias de testing y guías                 |
+| **[🚀 Deployment](./documentacion/09-deployment.md)**                  | Despliegue en producción y CI/CD               |
 
 ### 📂 Estructura del Proyecto
+
 ```
 ecommerce-project/
 ├── 📁 backend/              # API REST Node.js
@@ -133,6 +140,7 @@ ecommerce-project/
 ## 🔑 Tecnologías Utilizadas
 
 ### Backend
+
 - **Node.js 20** - Runtime JavaScript
 - **Express 5** - Framework web
 - **Sequelize 6** - ORM para MySQL
@@ -142,6 +150,7 @@ ecommerce-project/
 - **Jest** - Framework de testing
 
 ### Frontend
+
 - **React 19** - Librería UI
 - **Vite 5** - Build tool moderno
 - **TailwindCSS 4** - Framework CSS utility-first
@@ -151,6 +160,7 @@ ecommerce-project/
 - **Zod** - Validación de schemas
 
 ### DevOps
+
 - **Docker & Docker Compose** - Contenedorización
 - **GitHub Actions** - CI/CD (preparado)
 - **ESLint & Prettier** - Calidad de código
@@ -159,6 +169,7 @@ ecommerce-project/
 ## 🛠️ Comandos Principales
 
 ### Desarrollo
+
 ```bash
 # Iniciar desarrollo completo
 docker compose up --build
@@ -177,6 +188,7 @@ docker compose exec backend sh
 ```
 
 ### Producción
+
 ```bash
 # Desplegar en producción
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
@@ -191,6 +203,7 @@ docker compose exec mysql mysqldump -u root -p ecommerce > backup.sql
 ## 🧪 Testing
 
 ### Backend (Jest)
+
 ```bash
 # Ejecutar todos los tests
 cd backend && npm test
@@ -203,6 +216,7 @@ npm test -- --testPathPattern=user.test.js
 ```
 
 ### Frontend (Vitest)
+
 ```bash
 # Frontend Admin
 cd frontend-admin && npm test
@@ -232,6 +246,7 @@ npm run test:ui
 5. Abrir **Pull Request**
 
 ### Convenciones de Commits
+
 - `Add:` Nueva funcionalidad
 - `Fix:` Corrección de bugs
 - `Update:` Mejoras o cambios
@@ -242,6 +257,47 @@ npm run test:ui
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
+## Gestión de Ordenes
+
+- Endpoints de Órdenes (/api/orders)
+  ➕ Crear una orden
+  POST /api/orders
+  Crea una nueva orden en estado pending.
+  Requiere un token JWT válido de un usuario autenticado.
+  Headers:
+  Content-Type: application/json
+  Authorization: Bearer <accessToken>
+
+## Actualizar estado de una orden y notificar al cliente
+
+PUT /api/orders/:id/status
+
+Actualiza el estado de una orden (pending, paid, shipped, delivered, cancelled)
+y envía automáticamente un correo electrónico al cliente informando el cambio.
+
+Headers
+Content-Type: application/json
+Authorization: Bearer <accessTokenAdmin>
+
+Requisitos
+
+Solo los usuarios con role = 'admin' pueden actualizar el estado.
+El correo se envía usando el servicio Resend API, configurado en emailService.js.
+
+## ⚙️ Configuración del servicio de correo
+
+Archivo: backend/src/services/emailService.js
+Variables de entorno requeridas:
+RESEND_API_KEY=tu_api_key_resend
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+
+Los modelos Order y OrderItem se importan desde models/index.js,
+que expone todas las asociaciones y evita el uso directo de config/db.js.
+
+El middleware requireAdmin restringe la actualización de estado a usuarios administradores.
+
+El correo se genera automáticamente desde orderService.js usando emailService.sendOrderStatusEmail(...).
 
 ---
 
