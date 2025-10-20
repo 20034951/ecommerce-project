@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  ShoppingCart, 
-  User, 
-  Search, 
-  Menu, 
+import {
+  ShoppingCart,
+  User,
+  Search,
+  Menu,
   X,
   Heart,
   LogOut,
@@ -16,6 +16,8 @@ import { useAuth } from '../../auth/AuthProvider.jsx';
 import { AuthGuard } from '../../auth/Guards.jsx';
 import { useCart } from '../../modules/cart/hooks/useCart.js';
 import { useTheme } from '../../contexts/ThemeProvider.jsx';
+
+
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,26 +44,26 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/catalog" 
+            <Link
+              to="/catalog"
               className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Catálogo
             </Link>
-            <Link 
-              to="/categories" 
+            <Link
+              to="/categories"
               className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Categorías
             </Link>
-            <Link 
-              to="/about" 
+            <Link
+              to="/about"
               className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Acerca de
             </Link>
-            <Link 
-              to="/contact" 
+            <Link
+              to="/contact"
               className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
             >
               Contacto
@@ -99,8 +101,8 @@ export function Header() {
 
             {/* Wishlist */}
             <AuthGuard fallback={null}>
-              <Link 
-                to="/wishlist" 
+              <Link
+                to="/wishlist"
                 className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 p-2 transition-colors relative"
               >
                 <Heart className="h-6 w-6" />
@@ -108,8 +110,8 @@ export function Header() {
             </AuthGuard>
 
             {/* Shopping Cart */}
-            <Link 
-              to="/cart" 
+            <Link
+              to="/cart"
               className="text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 p-2 transition-colors relative"
             >
               <ShoppingCart className="h-6 w-6" />
@@ -121,17 +123,17 @@ export function Header() {
             </Link>
 
             {/* User Menu */}
-            <AuthGuard 
+            <AuthGuard
               fallback={
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => navigate('/login')}
                   >
                     Iniciar Sesión
                   </Button>
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => navigate('/register')}
                   >
@@ -144,7 +146,7 @@ export function Header() {
                 <button className="flex items-center text-gray-700 hover:text-primary-600 p-2 transition-colors">
                   <User className="h-6 w-6" />
                 </button>
-                
+
                 {/* User Dropdown */}
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="px-4 py-3 border-b">
@@ -152,25 +154,25 @@ export function Header() {
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                   <div className="py-1">
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       Mi Perfil
                     </Link>
-                    <Link 
-                      to="/orders" 
+                    <Link
+                      to="/orders"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       Mis Pedidos
                     </Link>
-                    <Link 
-                      to="/addresses" 
+                    <Link
+                      to="/addresses"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                       Direcciones
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                     >
@@ -208,29 +210,29 @@ export function Header() {
                 />
               </div>
 
-              <Link 
-                to="/catalog" 
+              <Link
+                to="/catalog"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Catálogo
               </Link>
-              <Link 
-                to="/categories" 
+              <Link
+                to="/categories"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Categorías
               </Link>
-              <Link 
-                to="/about" 
+              <Link
+                to="/about"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Acerca de
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -240,8 +242,8 @@ export function Header() {
               <AuthGuard fallback={
                 <div className="pt-4 pb-3 border-t border-gray-100">
                   <div className="flex flex-col space-y-2 px-3">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="justify-start"
                       onClick={() => {
                         navigate('/login');
@@ -250,7 +252,7 @@ export function Header() {
                     >
                       Iniciar Sesión
                     </Button>
-                    <Button 
+                    <Button
                       className="justify-start"
                       onClick={() => {
                         navigate('/register');
@@ -268,28 +270,28 @@ export function Header() {
                     <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
                   <div className="space-y-1">
-                    <Link 
-                      to="/profile" 
+                    <Link
+                      to="/profile"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Mi Perfil
                     </Link>
-                    <Link 
-                      to="/orders" 
+                    <Link
+                      to="/orders"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Mis Pedidos
                     </Link>
-                    <Link 
-                      to="/addresses" 
+                    <Link
+                      to="/addresses"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Direcciones
                     </Link>
-                    <button 
+                    <button
                       onClick={() => {
                         handleLogout();
                         setIsMenuOpen(false);
