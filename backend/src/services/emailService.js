@@ -160,9 +160,13 @@ class EmailService {
                             <div class="success">
                                 <p><strong>Tu contraseña ha sido cambiada exitosamente.</strong></p>
                             </div>
+<<<<<<< HEAD
                             <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString(
                               "es-ES"
                             )}.</p>
+=======
+                            <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString("es-ES")}.</p>
+>>>>>>> b0f7616 (Add: order email notification and update README)
                             <p>Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.</p>
                         </div>
                         <div class="footer">
@@ -178,9 +182,13 @@ class EmailService {
 
                 Hola ${userName || "Usuario"},
 
+<<<<<<< HEAD
                 Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString(
                   "es-ES"
                 )}.
+=======
+                Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString("es-ES")}.
+>>>>>>> b0f7616 (Add: order email notification and update README)
 
                 Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.
             `;
@@ -210,6 +218,7 @@ class EmailService {
     }
   }
 
+<<<<<<< HEAD
   async sendOrderConfirmation(order) {
     try {
       const { user, order_id, total_amount, items, created_at } = order;
@@ -526,6 +535,49 @@ class EmailService {
         subject: `Pedido #${order_id} Cancelado`,
         html: htmlContent,
         tags: [{ name: "category", value: "order_cancelled" }],
+=======
+  async sendOrderStatusEmail(to, userName, orderId, status, totalAmount) {
+    try {
+      if (this.isDevelopment) {
+        console.log("📦 [DEV MODE] Order Status Update Email:");
+        console.log(`   To: ${to}`);
+        console.log(`   User: ${userName}`);
+        console.log(`   Order: #${orderId}`);
+        console.log(`   Status: ${status}`);
+        console.log(`   Total: $${totalAmount}`);
+      }
+
+      const statusMessages = {
+        pending: "Pendiente de pago",
+        paid: "Pago recibido",
+        shipped: "Enviado 🚚",
+        delivered: "Entregado ✅",
+        cancelled: "Cancelado ❌",
+      };
+
+      const htmlContent = `
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: auto; padding: 20px;">
+                    <h2>Hola ${userName || "Cliente"},</h2>
+                    <p>El estado de tu pedido <strong>#${orderId}</strong> ha cambiado.</p>
+                    <p><strong>Nuevo estado:</strong> ${statusMessages[status] || status}</p>
+                    <p><strong>Total:</strong> $${totalAmount}</p>
+                    <p>Gracias por confiar en nosotros 💙</p>
+                    <p>— Equipo E-commerce</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [to, "delivered@resend.dev"],
+        subject: `Actualización de Pedido #${orderId} - ${statusMessages[status] || status}`,
+        html: htmlContent,
+        text: `Hola ${userName || "Cliente"}, tu pedido #${orderId} ahora está "${statusMessages[status] || status}".`,
+        tags: [{ name: "category", value: "order_status_update" }],
+>>>>>>> b0f7616 (Add: order email notification and update README)
       });
 
       if (error) {
