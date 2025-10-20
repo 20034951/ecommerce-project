@@ -4,7 +4,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 
-# Instalar todas las dependencias (incluyendo devDependencies para Vite)
+# Instalar dependencias (incluyendo devDependencies para Vite)
 RUN npm ci --silent && npm cache clean --force
 
 COPY . .
@@ -28,6 +28,9 @@ USER nextjs
 ENV HOST=0.0.0.0
 ENV PORT=3000
 ENV NODE_ENV=development
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV CHOKIDAR_USEPOLLING=true    
+ENV WATCHPACK_POLLING=true        
 
 EXPOSE 3000
 
