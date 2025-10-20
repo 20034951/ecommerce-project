@@ -184,7 +184,10 @@ export default function OrdersPage() {
   };
 
   const formatCurrency = (amount) => {
-    return `Q${parseFloat(amount).toFixed(2)}`;
+    return `Q. ${parseFloat(amount).toLocaleString('es-GT', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
   };
 
   return (
@@ -351,7 +354,7 @@ export default function OrdersPage() {
               <p className="text-gray-600 dark:text-gray-400">No hay pedidos para mostrar</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-md">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-md mt-5">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-indigo-600 dark:bg-indigo-700 border-b-2 border-indigo-700 hover:bg-indigo-600">
