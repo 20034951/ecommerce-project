@@ -29,6 +29,10 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.STRING(100),
             allowNull: false
         },
+        postal_code: {
+            type: DataTypes.STRING(20),
+            allowNull: true
+        },
         type: {
             type: DataTypes.ENUM('shipping', 'billing'),
             defaultValue: 'shipping'

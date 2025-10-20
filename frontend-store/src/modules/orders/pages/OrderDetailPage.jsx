@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ordersApi } from '../../../api';
 import { OrderTimeline, CancelOrderModal } from '../components';
+import ProfileLayout from '../../../layouts/ProfileLayout.jsx';
+import { formatCurrency } from '../../../utils/currency.js';
 import { 
   Card, 
   CardContent,
@@ -14,7 +16,6 @@ import {
 import { 
   ArrowLeft, 
   Calendar,
-  DollarSign,
   Package,
   Truck,
   MapPin,
@@ -80,7 +81,9 @@ export default function OrderDetailPage() {
       setIsLoading(true);
       setError(null);
       const response = await ordersApi.getOrderById(id);
-      setOrder(response.data);
+      // El API retorna { success, data }
+      const orderData = response.data || response;
+      setOrder(orderData);
     } catch (err) {
       console.error('Error fetching order:', err);
       setError(err.response?.data?.error || 'Error al cargar el pedido');
@@ -132,18 +135,18 @@ export default function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+      <ProfileLayout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-300">Cargando detalles del pedido...</p>
         </div>
-      </div>
+      </ProfileLayout>
     );
   };
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <ProfileLayout>
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardContent className="p-12 text-center">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -161,18 +164,19 @@ export default function OrderDetailPage() {
                 variant="outline"
                 className="border-gray-300 dark:border-gray-600"
               >
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Volver a mis pedidos
               </Button>
               <Button
                 onClick={fetchOrderDetails}
-                className="bg-primary-600 hover:bg-primary-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
               >
                 Reintentar
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ProfileLayout>
     );
   }
 
@@ -181,23 +185,23 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <Link 
-            to="/orders"
-            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a mis pedidos
-          </Link>
-        </div>
+    <ProfileLayout>
+      {/* Header */}
+      <div className="mb-6">
+        <Link 
+          to="/orders"
+          className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver a mis pedidos
+        </Link>
+        
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Pedido #{order.order_id}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Realizado el {formatDate(order.created_at)}
             </p>
@@ -211,43 +215,55 @@ export default function OrderDetailPage() {
                 className="border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
               >
                 <XCircle className="h-4 w-4 mr-2" />
-                Cancelar Pedido
+                <span className="hidden sm:inline">Cancelar Pedido</span>
+                <span className="sm:hidden">Cancelar</span>
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Columna Principal */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Productos */}
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Productos</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white flex items-center">
+                <Package className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                Productos
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {order.items && order.items.map((item) => (
                   <div key={item.order_item_id} className="flex items-center space-x-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                      <Package className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Package className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 dark:text-white truncate">
                         {item.product?.name || 'Producto'}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         SKU: {item.product?.sku || 'N/A'}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Cantidad: {item.quantity}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Cantidad: <span className="font-medium text-gray-900 dark:text-white">{item.quantity}</span>
+                        </p>
+                        <span className="text-gray-400 dark:text-gray-600">×</span>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatCurrency(item.price)} <span className="text-xs">c/u</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        ${parseFloat(item.price).toFixed(2)}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Subtotal
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        c/u
+                      <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                        {formatCurrency(parseFloat(item.price) * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -256,20 +272,22 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Timeline */}
           <OrderTimeline
             statusHistory={order.statusHistory || []}
             currentStatus={order.status}
             estimatedDelivery={order.estimated_delivery}
           />
 
+          {/* Cancelación */}
           {order.status === 'cancelled' && order.cancellation_reason && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
               <XCircle className="h-4 w-4" />
               <div>
-                <p className="font-semibold">Pedido cancelado</p>
-                <p className="text-sm mt-1">Motivo: {order.cancellation_reason}</p>
+                <p className="font-semibold text-red-800 dark:text-red-200">Pedido cancelado</p>
+                <p className="text-sm mt-1 text-red-700 dark:text-red-300">Motivo: {order.cancellation_reason}</p>
                 {order.cancelled_at && (
-                  <p className="text-xs mt-1">
+                  <p className="text-xs mt-1 text-red-600 dark:text-red-400">
                     Cancelado el {formatDate(order.cancelled_at)}
                   </p>
                 )}
@@ -278,63 +296,111 @@ export default function OrderDetailPage() {
           )}
         </div>
 
+        {/* Columna Lateral */}
         <div className="space-y-6">
+          {/* Resumen */}
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Resumen</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white">Resumen del Pedido</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Subtotal de productos */}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Total:</span>
-                <span className="text-gray-900 dark:text-white font-semibold">
-                  ${parseFloat(order.total_amount).toFixed(2)}
+                <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                <span className="text-gray-900 dark:text-white font-medium">
+                  {formatCurrency(
+                    order.items?.reduce((sum, item) => 
+                      sum + (parseFloat(item.price) * item.quantity), 0
+                    ) || 0
+                  )}
                 </span>
               </div>
+
+              {/* Costo de envío */}
               {order.shippingMethod && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Método de envío:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Envío ({order.shippingMethod.name}):</span>
                   <span className="text-gray-900 dark:text-white">
-                    {order.shippingMethod.name}
+                    {formatCurrency(order.shippingMethod.cost)}
                   </span>
                 </div>
               )}
+
+              {/* Descuento por cupón */}
               {order.coupon && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Cupón aplicado:</span>
-                  <span className="text-green-600 dark:text-green-400">
-                    {order.coupon.code}
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Descuento ({order.coupon.code}):
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                    - {formatCurrency(order.coupon.discount_amount || 0)}
                   </span>
                 </div>
+              )}
+
+              {/* Separador */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3"></div>
+
+              {/* Total */}
+              <div className="flex justify-between">
+                <span className="text-base font-semibold text-gray-900 dark:text-white">Total:</span>
+                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {formatCurrency(order.total_amount)}
+                </span>
+              </div>
+
+              {/* Información adicional de envío */}
+              {order.shippingMethod && (
+                <>
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3"></div>
+                  <div className="bg-gray-50 dark:bg-gray-900/30 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Truck className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-gray-600 dark:text-gray-400">Método:</span>
+                      <span className="text-gray-900 dark:text-white font-medium">
+                        {order.shippingMethod.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-gray-600 dark:text-gray-400">Región:</span>
+                      <span className="text-gray-900 dark:text-white">
+                        {order.shippingMethod.region}
+                      </span>
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
 
+          {/* Seguimiento */}
           {(order.tracking_number || order.tracking_url) && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center">
-                  <Truck className="h-5 w-5 mr-2" />
+                  <Truck className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
                   Seguimiento
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {order.tracking_number && (
                   <div>
-                    <label className="text-sm text-gray-600 dark:text-gray-400">
+                    <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">
                       Número de seguimiento:
                     </label>
-                    <div className="flex items-center mt-1">
-                      <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded flex-1">
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded flex-1 font-mono">
                         {order.tracking_number}
                       </code>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyToClipboard(order.tracking_number)}
-                        className="ml-2"
+                        className="flex-shrink-0"
                       >
                         {copied ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
@@ -349,7 +415,7 @@ export default function OrderDetailPage() {
                       href={order.tracking_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Rastrear en sitio del proveedor
@@ -358,8 +424,8 @@ export default function OrderDetailPage() {
                 )}
 
                 {order.estimated_delivery && order.status !== 'delivered' && (
-                  <div>
-                    <label className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">
                       Entrega estimada:
                     </label>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -369,11 +435,12 @@ export default function OrderDetailPage() {
                 )}
 
                 {order.status === 'delivered' && order.delivered_at && (
-                  <div>
-                    <label className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <label className="text-sm text-gray-600 dark:text-gray-400 block mb-1">
                       Entregado el:
                     </label>
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
                       {formatDate(order.delivered_at)}
                     </p>
                   </div>
@@ -382,28 +449,35 @@ export default function OrderDetailPage() {
             </Card>
           )}
 
+          {/* Dirección de Envío */}
           {order.address && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
+                  <MapPin className="h-5 w-5 mr-2 text-teal-600 dark:text-teal-400" />
                   Dirección de Envío
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-sm text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {order.address.address_line}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {order.address.city}, {order.address.state || ''}
+                  {order.address.city}{order.address.state ? `, ${order.address.state}` : ''}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {order.address.country}
                 </p>
+                {order.address.postal_code && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    CP: {order.address.postal_code}
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
 
+          {/* Información de Contacto */}
           {order.user && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
@@ -430,6 +504,7 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Modal de Cancelación */}
       <CancelOrderModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
@@ -438,6 +513,6 @@ export default function OrderDetailPage() {
         orderStatus={order.status}
         isLoading={isCancelling}
       />
-    </div>
+    </ProfileLayout>
   );
 }
