@@ -9,6 +9,7 @@ import { Toaster } from 'react-hot-toast';
 import { CartProvider } from './modules/cart/context/CartContext.jsx';
 
 
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {

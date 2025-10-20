@@ -6,16 +6,21 @@ import tokenCleanup from "./middleware/tokenCleanup.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
 import seedDatabase from "./seedDatabase.js";
+import cookieParser from 'cookie-parser';
+import cartRoutes from './routes/cart.routes.js';
+
 
 dotenv.config();
 
 const app = express();
 
+
+
 // Configuración CORS para permitir frontend
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'http://localhost:3001', 
+    'http://localhost:3001',
     'http://localhost:5173',
     'http://localhost:5174'
   ],
@@ -28,23 +33,25 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use('/api/cart', cartRoutes);
 
 // Middleware para limpiar tokens expirados
 app.use(tokenCleanup.cleanup);
 
 // Middleware para obtener IP real
 app.use((req, res, next) => {
-  req.clientIP = req.headers['x-forwarded-for'] || 
-                 req.headers['x-real-ip'] || 
-                 req.connection.remoteAddress || 
-                 req.socket.remoteAddress ||
-                 (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-                 req.ip;
+  req.clientIP = req.headers['x-forwarded-for'] ||
+    req.headers['x-real-ip'] ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+    req.ip;
   next();
 });
 
 // Healthcheck
-app.get("/", (req, res) => res.json({ 
+app.get("/", (req, res) => res.json({
   message: "Backend running",
   timestamp: new Date().toISOString(),
   version: "1.0.0"
@@ -53,7 +60,7 @@ app.get("/", (req, res) => res.json({
 const startServer = async () => {
   try {
     console.log('🚀 Iniciando servidor...');
-    
+
     // Redis (opcional)
     try {
       console.log('🔄 Inicializando Redis...');
@@ -105,16 +112,16 @@ const startServer = async () => {
       console.log(`🌐 Backend ejecutándose en puerto ${port}`);
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(`📡 Variables de entorno cargadas: ${process.env.NODE_ENV || 'desarrollo'}`);
-      
+
       // Iniciar limpieza automática de tokens
       tokenCleanup.startAutomaticCleanup();
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log('\n💡 Para poblar la base de datos con datos de prueba:');
         console.log(`   POST http://localhost:${port}/api/seed`);
       }
     });
-    
+
   } catch (err) {
     console.error("❌ Error durante la inicialización:", err);
     process.exit(1);
