@@ -75,11 +75,14 @@ const startServer = async () => {
     const authRoutes = (await import("./routes/register.js")).default;
     const passwordResetRoutes = (await import("./routes/passwordReset.js"))
       .default;
+<<<<<<< HEAD
     const orderRoutes = (await import("./routes/order.js")).default;
     const shippingMethodRoutes = (await import("./routes/shippingMethod.js"))
       .default;
     const addressRoutes = (await import("./routes/address.js")).default;
     const seedRoutes = (await import("./routes/seed.js")).default;
+=======
+>>>>>>> b0f7616 (Add: order email notification and update README)
 
     // Montar rutas
     app.use("/api/auth", authRoutes);
@@ -89,8 +92,11 @@ const startServer = async () => {
     app.use("/api/users", userRoutes);
     app.use("/api/customers", customerRoutes);
     app.use("/api/orders", orderRoutes);
+<<<<<<< HEAD
     app.use("/api/shipping-methods", shippingMethodRoutes);
     app.use("/api/addresses", addressRoutes);
+=======
+>>>>>>> b0f7616 (Add: order email notification and update README)
 
     // Ruta para poblar la base de datos (solo desarrollo)
     if (process.env.NODE_ENV === "development") {
@@ -121,15 +127,20 @@ const startServer = async () => {
       console.log(`🌐 Backend ejecutándose en puerto ${port}`);
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(
+<<<<<<< HEAD
         `📡 Variables de entorno cargadas: ${
           process.env.NODE_ENV || "desarrollo"
         }`
+=======
+        `📡 Variables de entorno cargadas: ${process.env.NODE_ENV || "desarrollo"}`
+>>>>>>> b0f7616 (Add: order email notification and update README)
       );
 
       // Iniciar limpieza automática de tokens
       tokenCleanup.startAutomaticCleanup();
 
       if (process.env.NODE_ENV === "development") {
+<<<<<<< HEAD
         console.log("\n💡 Rutas de seeding disponibles:");
         console.log(
           `   POST http://localhost:${port}/api/seed/all - Ejecutar todos los seeders`
@@ -146,6 +157,10 @@ const startServer = async () => {
         console.log(
           `   GET  http://localhost:${port}/api/seed/status - Estado de la BD`
         );
+=======
+        console.log("\n💡 Para poblar la base de datos con datos de prueba:");
+        console.log(`   POST http://localhost:${port}/api/seed`);
+>>>>>>> b0f7616 (Add: order email notification and update README)
       }
     });
   } catch (err) {
