@@ -1,3 +1,4 @@
+// backend/src/app.js
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -6,7 +7,8 @@ import tokenCleanup from "./middleware/tokenCleanup.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
 import seedDatabase from "./seedDatabase.js";
-import orderRoutes from "./routes/order.js";
+import cookieParser from "cookie-parser";
+import cartRoutes from "./routes/cart.routes.js";
 
 dotenv.config();
 
@@ -29,6 +31,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Montar rutas del carrito (cookie cart_id)
+app.use("/api/cart", cartRoutes);
 
 // Middleware para limpiar tokens expirados
 app.use(tokenCleanup.cleanup);
@@ -73,11 +79,9 @@ const startServer = async () => {
     const userRoutes = (await import("./routes/user.js")).default;
     const customerRoutes = (await import("./routes/customer.js")).default;
     const authRoutes = (await import("./routes/register.js")).default;
-    const passwordResetRoutes = (await import("./routes/passwordReset.js"))
-      .default;
+    const passwordResetRoutes = (await import("./routes/passwordReset.js")).default;
     const orderRoutes = (await import("./routes/order.js")).default;
-    const shippingMethodRoutes = (await import("./routes/shippingMethod.js"))
-      .default;
+    const shippingMethodRoutes = (await import("./routes/shippingMethod.js")).default;
     const addressRoutes = (await import("./routes/address.js")).default;
     const seedRoutes = (await import("./routes/seed.js")).default;
 
@@ -92,8 +96,9 @@ const startServer = async () => {
     app.use("/api/shipping-methods", shippingMethodRoutes);
     app.use("/api/addresses", addressRoutes);
 
-    // Ruta para poblar la base de datos (solo desarrollo)
+    // Rutas de seed (solo en desarrollo)
     if (process.env.NODE_ENV === "development") {
+      // endpoint simple para poblar todo
       app.post("/api/seed", async (req, res) => {
         try {
           await seedDatabase();
@@ -104,7 +109,7 @@ const startServer = async () => {
         }
       });
 
-      // Rutas de seed (solo en desarrollo)
+      // endpoints granulares
       app.use("/api/seed", seedRoutes);
     }
 
@@ -121,9 +126,7 @@ const startServer = async () => {
       console.log(`🌐 Backend ejecutándose en puerto ${port}`);
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(
-        `📡 Variables de entorno cargadas: ${
-          process.env.NODE_ENV || "desarrollo"
-        }`
+        `📡 Variables de entorno cargadas: ${process.env.NODE_ENV || "desarrollo"}`
       );
 
       // Iniciar limpieza automática de tokens
