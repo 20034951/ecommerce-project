@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Trash2
 } from 'lucide-react';
+import ProfileLayout from '../../../layouts/ProfileLayout.jsx';
 import { customersApi } from '../../../api/customers.js';
 import { useAuth } from '../../../auth/AuthProvider.jsx';
 
@@ -192,20 +193,12 @@ export default function SecurityPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Seguridad</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Gestiona tu contraseña y las sesiones activas de tu cuenta
-        </p>
-      </div>
-
+    <ProfileLayout>
       {/* Success Message */}
       {successMessage && (
-        <Alert className="mb-6 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+        <Alert className="mb-4 sm:mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 shadow-sm">
           <CheckCircle className="h-4 w-4" />
-          <AlertDescription className="text-green-800 dark:text-green-200">
+          <AlertDescription className="text-emerald-800 dark:text-emerald-200 text-sm sm:text-base">
             {successMessage}
           </AlertDescription>
         </Alert>
@@ -213,22 +206,27 @@ export default function SecurityPage() {
 
       {/* API Error */}
       {apiError && (
-        <Alert variant="destructive" className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+        <Alert variant="destructive" className="mb-4 sm:mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 shadow-sm">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="text-red-800 dark:text-red-200">
+          <AlertDescription className="text-red-800 dark:text-red-200 text-sm sm:text-base">
             {apiError}
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Cambiar Contraseña */}
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-            <CardTitle className="flex items-center text-gray-900 dark:text-white">
-              <Lock className="h-5 w-5 mr-2" />
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <CardTitle className="flex items-center text-gray-900 dark:text-white text-base sm:text-lg">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-indigo-100 dark:bg-indigo-500/20 rounded-lg mr-2 sm:mr-3">
+                <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
               Cambiar Contraseña
             </CardTitle>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 ml-11 sm:ml-12">
+              Actualiza tu contraseña periódicamente
+            </p>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit(onSubmitPassword)} className="space-y-4">
@@ -333,16 +331,16 @@ export default function SecurityPage() {
 
               <Button 
                 type="submit" 
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-sm hover:shadow transition-all"
                 disabled={isChangingPassword}
               >
                 {isChangingPassword ? (
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Cambiando contraseña...
+                    <span>Cambiando contraseña...</span>
                   </div>
                 ) : (
-                  'Cambiar Contraseña'
+                  <span>Cambiar Contraseña</span>
                 )}
               </Button>
             </form>
@@ -350,20 +348,28 @@ export default function SecurityPage() {
         </Card>
 
         {/* Sesiones Activas */}
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center text-gray-900 dark:text-white">
-                <Shield className="h-5 w-5 mr-2" />
-                Sesiones Activas
-              </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="flex items-center text-gray-900 dark:text-white text-base sm:text-lg">
+                  <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-indigo-100 dark:bg-indigo-500/20 rounded-lg mr-2 sm:mr-3">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  Sesiones Activas
+                </CardTitle>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 ml-11 sm:ml-12">
+                  Administra tus dispositivos conectados
+                </p>
+              </div>
+              <div className="flex gap-2 ml-2">
                 <Button
                   onClick={fetchSessions}
                   variant="outline"
                   size="sm"
                   disabled={isLoadingSessions}
-                  className="border-gray-300 dark:border-gray-600"
+                  className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 h-8 w-8 p-0"
+                  title="Actualizar"
                 >
                   <RefreshCw className={`h-4 w-4 ${isLoadingSessions ? 'animate-spin' : ''}`} />
                 </Button>
@@ -373,10 +379,10 @@ export default function SecurityPage() {
                     variant="outline"
                     size="sm"
                     disabled={isLoadingSessions}
-                    className="border-red-300 dark:border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hidden sm:flex"
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
-                    Cerrar Otras
+                    <span>Cerrar Otras</span>
                   </Button>
                 )}
               </div>
@@ -444,6 +450,6 @@ export default function SecurityPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ProfileLayout>
   );
 }
