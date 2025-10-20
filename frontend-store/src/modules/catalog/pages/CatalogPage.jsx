@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import productsApi from '../../../api/products';
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from 'react-hot-toast';
 import ProductCard from '../components/ProductCard';
 
 export default function CatalogPage() {
@@ -63,13 +63,13 @@ export default function CatalogPage() {
   //This can be a generic setting
   const limitOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 4);
 
-  const TITLE="Catálogo de Productos";
-  const SHOW="Mostrar:";
-  const SORT_BY="Ordenar por:";
-  const ORDER="Orden:";
-  const LOADING="Cargando productos...";
-  const PREV="Anterior";
-  const NEXT="Siguiente";
+  const TITLE = "Catálogo de Productos";
+  const SHOW = "Mostrar:";
+  const SORT_BY = "Ordenar por:";
+  const ORDER = "Orden:";
+  const LOADING = "Cargando productos...";
+  const PREV = "Anterior";
+  const NEXT = "Siguiente";
 
   const sortOptions = [
     { value: "name", label: "Nombre" },
@@ -83,7 +83,7 @@ export default function CatalogPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Toaster position="top-right" />
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h1 className="text-3xl font-bold text-gray-900">{TITLE}</h1>
         <div className="flex gap-2 flex-wrap items-center">
@@ -98,7 +98,7 @@ export default function CatalogPage() {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="mr-2 text-gray-700 font-medium">{SORT_BY}</label>
             <select
@@ -112,7 +112,7 @@ export default function CatalogPage() {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="mr-2 text-gray-700 font-medium">{ORDER}</label>
             <select
