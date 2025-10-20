@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   Bug,
-  ChevronRight
+  ChevronRight,
+  Truck
 } from 'lucide-react';
 import { cn } from '../../utils/cn.js';
 import { useSidebar } from '../../contexts/SidebarContext.jsx';
@@ -50,6 +51,12 @@ const navigation = [
     href: '/admin/orders',
     icon: ShoppingCart,
     description: 'Gestión de pedidos'
+  },
+  {
+    name: 'Métodos de Envío',
+    href: '/admin/shipping-methods',
+    icon: Truck,
+    description: 'Opciones de entrega'
   },
   {
     name: 'Roles',

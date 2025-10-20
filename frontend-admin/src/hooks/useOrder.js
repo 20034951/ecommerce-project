@@ -9,7 +9,12 @@ import { ordersApi } from '../api/ordersApi';
 export function useOrder(orderId) {
   return useQuery({
     queryKey: ['admin-order', orderId],
-    queryFn: () => ordersApi.getOrderById(orderId),
+    queryFn: async () => {
+      const response = await ordersApi.getOrderById(orderId);
+      // El backend devuelve { success: true, data: {...} }
+      // Extraer solo los datos del pedido
+      return response.data;
+    },
     enabled: !!orderId,
     staleTime: 1000 * 60 * 2, // 2 minutos
   });

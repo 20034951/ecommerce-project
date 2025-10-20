@@ -12,7 +12,7 @@ export function cn(...inputs) {
 /**
  * Format currency value
  */
-export function formatCurrency(value, currency = 'USD', locale = 'en-US') {
+export function formatCurrency(value, currency = 'Q', locale = 'es-GT') {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -28,8 +28,8 @@ export function formatDate(value, options = {}) {
     month: 'long',
     day: 'numeric',
   };
-  
-  return new Intl.DateTimeFormat('en-US', { ...defaultOptions, ...options }).format(new Date(value));
+
+  return new Intl.DateTimeFormat('es-GT', { ...defaultOptions, ...options }).format(new Date(value));
 }
 
 /**
