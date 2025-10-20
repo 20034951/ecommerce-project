@@ -76,7 +76,9 @@ const startServer = async () => {
     const passwordResetRoutes = (await import("./routes/passwordReset.js"))
       .default;
     const orderRoutes = (await import("./routes/order.js")).default;
-    const shippingMethodRoutes = (await import("./routes/shippingMethod.js")).default;
+    const shippingMethodRoutes = (await import("./routes/shippingMethod.js"))
+      .default;
+    const addressRoutes = (await import("./routes/address.js")).default;
     const seedRoutes = (await import("./routes/seed.js")).default;
 
     // Montar rutas
@@ -88,6 +90,7 @@ const startServer = async () => {
     app.use("/api/customers", customerRoutes);
     app.use("/api/orders", orderRoutes);
     app.use("/api/shipping-methods", shippingMethodRoutes);
+    app.use("/api/addresses", addressRoutes);
 
     // Ruta para poblar la base de datos (solo desarrollo)
     if (process.env.NODE_ENV === "development") {
@@ -100,6 +103,8 @@ const startServer = async () => {
           res.status(500).json({ error: "Error al poblar la base de datos" });
         }
       });
+
+      // Rutas de seed (solo en desarrollo)
       app.use("/api/seed", seedRoutes);
     }
 
@@ -116,19 +121,31 @@ const startServer = async () => {
       console.log(`🌐 Backend ejecutándose en puerto ${port}`);
       console.log(`📍 Acceso local: http://localhost:${port}`);
       console.log(
-        `📡 Variables de entorno cargadas: ${process.env.NODE_ENV || "desarrollo"}`
+        `📡 Variables de entorno cargadas: ${
+          process.env.NODE_ENV || "desarrollo"
+        }`
       );
 
       // Iniciar limpieza automática de tokens
       tokenCleanup.startAutomaticCleanup();
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('\n💡 Rutas de seeding disponibles:');
-        console.log(`   POST http://localhost:${port}/api/seed/all - Ejecutar todos los seeders`);
-        console.log(`   POST http://localhost:${port}/api/seed/users - Solo usuarios`);
-        console.log(`   POST http://localhost:${port}/api/seed/orders - Solo pedidos`);
-        console.log(`   POST http://localhost:${port}/api/seed/legacy - Seeder antiguo`);
-        console.log(`   GET  http://localhost:${port}/api/seed/status - Estado de la BD`);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("\n💡 Rutas de seeding disponibles:");
+        console.log(
+          `   POST http://localhost:${port}/api/seed/all - Ejecutar todos los seeders`
+        );
+        console.log(
+          `   POST http://localhost:${port}/api/seed/users - Solo usuarios`
+        );
+        console.log(
+          `   POST http://localhost:${port}/api/seed/orders - Solo pedidos`
+        );
+        console.log(
+          `   POST http://localhost:${port}/api/seed/legacy - Seeder antiguo`
+        );
+        console.log(
+          `   GET  http://localhost:${port}/api/seed/status - Estado de la BD`
+        );
       }
     });
   } catch (err) {

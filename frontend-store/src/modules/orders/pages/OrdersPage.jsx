@@ -1,31 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  Filter,
+  Package,
+  Search,
+  ShoppingBag,
+  Truck,
+  XCircle
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersApi } from '../../../api';
-import { 
-  Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
+import {
+  Alert,
   Badge,
-  Input,
-  Alert
+  Button,
+  Card,
+  CardContent,
+  Input
 } from '../../../components/ui';
-import { 
-  ShoppingBag, 
-  Eye, 
-  Calendar,
-  DollarSign,
-  Package,
-  ArrowLeft,
-  Filter,
-  Search,
-  AlertCircle,
-  Truck,
-  CheckCircle,
-  XCircle,
-  Clock
-} from 'lucide-react';
+import ProfileLayout from '../../../layouts/ProfileLayout.jsx';
+import { formatCurrency } from '../../../utils/currency.js';
 
 const STATUS_CONFIG = {
   pending: { 
@@ -85,8 +83,9 @@ export default function OrdersPage() {
         search: searchTerm
       });
 
-      setOrders(response.data || []);
-      setPagination(response.pagination);
+      // El API retorna { success, data, pagination }
+      setOrders(Array.isArray(response) ? response : (response.data || []));
+      setPagination(response.pagination || null);
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError(err.response?.data?.error || 'Error al cargar los pedidos');
@@ -133,24 +132,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <Link 
-            to="/profile"
-            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al perfil
-          </Link>
-        </div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Mis Pedidos</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Revisa el estado y detalles de tus pedidos
-        </p>
-      </div>
-
+    <ProfileLayout>
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -302,9 +284,8 @@ export default function OrdersPage() {
                           <Package className="h-4 w-4 mr-2" />
                           {order.items?.length || 0} producto{order.items?.length !== 1 ? 's' : ''}
                         </div>
-                        <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-2" />
-                          ${parseFloat(order.total_amount).toFixed(2)}
+                        <div className="flex items-center font-semibold text-indigo-600 dark:text-indigo-400">
+                          {formatCurrency(order.total_amount)}
                         </div>
                       </div>
 
@@ -380,6 +361,6 @@ export default function OrdersPage() {
           )}
         </>
       )}
-    </div>
+    </ProfileLayout>
   );
 }
