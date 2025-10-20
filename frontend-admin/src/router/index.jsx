@@ -48,6 +48,8 @@ const Roles = lazy(() => import('../modules/roles/pages/RolesPage.jsx'));
 const RoleDetail = lazy(() => import('../modules/roles/pages/RoleDetailPage.jsx'));
 const CreateRole = lazy(() => import('../modules/roles/pages/CreateRolePage.jsx'));
 
+const ShippingMethods = lazy(() => import('../modules/shipping/pages/ShippingMethodsPage.jsx'));
+
 const Settings = lazy(() => import('../modules/settings/pages/SettingsPage.jsx'));
 
 // Error pages
@@ -233,6 +235,15 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <RoleDetail />
+          </AdminRoute>
+        )
+      },
+      // Shipping methods management
+      {
+        path: 'shipping-methods',
+        element: (
+          <AdminRoute>
+            <ShippingMethods />
           </AdminRoute>
         )
       },
