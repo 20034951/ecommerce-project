@@ -20,6 +20,7 @@ const ResetPassword = lazy(() => import('../modules/auth/pages/ResetPasswordPage
 // Cart & Checkout
 const Cart = lazy(() => import('../modules/cart/pages/CartPage.jsx'));
 const Checkout = lazy(() => import('../modules/checkout/pages/CheckoutPage.jsx'));
+const OrderSuccessPage = lazy(() => import('../modules/checkout/pages/OrderSuccessPage.jsx'));
 
 // User Profile
 const Profile = lazy(() => import('../modules/profile/pages/ProfilePage.jsx'));
@@ -78,6 +79,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Checkout />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: '/order/success/:orderNumber',
+        element: (
+          <PrivateRoute>
+            <OrderSuccessPage />
           </PrivateRoute>
         )
       },

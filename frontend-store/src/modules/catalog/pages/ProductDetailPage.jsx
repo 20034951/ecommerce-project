@@ -4,6 +4,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { FaShoppingCart } from 'react-icons/fa';
 import productsApi from '../../../api/products';
 import ProductCard from '../components/ProductCard.jsx';
+import { useCart } from '../../cart/hooks/useCart';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -11,6 +12,8 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const { addToCart, addItem } = useCart();
 
   const fetchProductDetail = async () => {
     setLoading(true);
@@ -28,8 +31,8 @@ export default function ProductDetailPage() {
         setRelated(filtered);
       }
     } catch (err) {
-        console.error('Error fetching product detail:', err);
-        toast.error('No se pudo cargar el producto');
+      console.error('Error fetching product detail:', err);
+      toast.error('No se pudo cargar el producto');
     } finally {
       setLoading(false);
     }
@@ -37,12 +40,42 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     fetchProductDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const LOADING="Cargando producto...";
-  const NOT_FOUND="Producto no encontrado";
-  const RELATED="Productos relacionados";
-  const ADD_TO_CART="Agregar al carrito";
+  const LOADING = "Cargando producto...";
+  const NOT_FOUND = "Producto no encontrado";
+  const RELATED = "Productos relacionados";
+  const ADD_TO_CART = "Agregar al carrito";
+
+  // 👇 handler real para agregar al carrito
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    // Normalizamos el ítem al mismo shape que usas en CheckoutPage
+    const item = {
+      id: product.product_id,
+      name: product.name,
+      price: Number(product.price),
+      quantity: 1,
+      image: product.image_path || null,
+    };
+
+    try {
+      if (typeof addToCart === 'function') {
+        addToCart(item);
+      } else if (typeof addItem === 'function') {
+        addItem(item, 1);
+      } else {
+        throw new Error('El hook useCart no expone addToCart ni addItem');
+      }
+
+      toast.success(`"${product.name}" agregado al carrito`);
+    } catch (e) {
+      console.error(e);
+      toast.error('No se pudo agregar al carrito');
+    }
+  };
 
   if (loading) return <p className="p-4">{LOADING}</p>;
   if (!product) return <p className="p-4">{NOT_FOUND}</p>;
@@ -56,7 +89,7 @@ export default function ProductDetailPage() {
           <img
             src={product.image_path || '/images/products/default.jpg'}
             alt={product.name}
-            className="w-full h-96 object-cover rounded"/>
+            className="w-full h-96 object-cover rounded" />
         </div>
         <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-bold">{product.name}</h1>
@@ -65,8 +98,8 @@ export default function ProductDetailPage() {
           <p className="text-gray-700">{product.description}</p>
 
           <button
-            onClick={() => toast.success(`"${product.name}" agregado al carrito (simulado)`)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition w-max mt-4">
+            onClick={handleAddToCart}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition w-max mt-4">
             <FaShoppingCart size={20} />
             <span>{ADD_TO_CART}</span>
           </button>
