@@ -5,6 +5,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './auth/AuthProvider.jsx';
 import { router } from './router/index.jsx';
 import { Spinner } from './components/ui';
+import { Toaster } from 'react-hot-toast';
+import { CartProvider } from './modules/cart/context/CartContext.jsx';
+
 
 // Create a client
 const queryClient = new QueryClient({
@@ -34,11 +37,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Suspense fallback={<GlobalLoading />}>
-          <RouterProvider router={router} />
-        </Suspense>
+        <CartProvider>
+          <Suspense fallback={<GlobalLoading />}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </CartProvider>
       </AuthProvider>
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
+      <Toaster position="top-right" />
     </QueryClientProvider>
   );
 }
