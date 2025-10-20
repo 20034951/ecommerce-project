@@ -4,6 +4,9 @@ import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import HttpError from '../utils/HttpError.js';
 
+// ======= CHECKOUT CON LOGIN (EG4-19 / EG4-21) =======
+import { randomUUID } from 'crypto';
+
 const router = express.Router();
 
 // ============================================
@@ -17,7 +20,7 @@ const router = express.Router();
  */
 router.get('/admin/stats', authenticateToken, requireAdmin, asyncHandler(async (req, res) => {
     const stats = await orderService.getOrderStats();
-    
+
     res.json({
         success: true,
         data: stats
@@ -39,7 +42,7 @@ router.get('/admin/export', authenticateToken, requireAdmin, asyncHandler(async 
     };
 
     const csvData = await orderService.exportOrdersToCSV(filters);
-    
+
     // Configurar headers para descarga de archivo CSV
     const filename = `orders_${new Date().toISOString().split('T')[0]}.csv`;
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -55,7 +58,7 @@ router.get('/admin/export', authenticateToken, requireAdmin, asyncHandler(async 
 router.get('/admin/:id', authenticateToken, requireAdmin, asyncHandler(async (req, res) => {
     const orderId = req.params.id;
     const order = await orderService.getOrderById(orderId, null, true);
-    
+
     res.json({
         success: true,
         data: order
@@ -79,7 +82,7 @@ router.get('/admin', authenticateToken, requireAdmin, asyncHandler(async (req, r
     };
 
     const result = await orderService.getAllOrders(filters);
-    
+
     res.json({
         success: true,
         data: result.orders,
@@ -108,7 +111,7 @@ router.put('/admin/:id/status', authenticateToken, requireAdmin, asyncHandler(as
     }
 
     const order = await orderService.updateOrderStatus(orderId, statusData, userId);
-    
+
     res.json({
         success: true,
         message: 'Estado del pedido actualizado exitosamente',
@@ -124,10 +127,10 @@ router.put('/admin/:id/status', authenticateToken, requireAdmin, asyncHandler(as
 router.put('/admin/:id', authenticateToken, requireAdmin, asyncHandler(async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user.user_id;
-    
+
     // Para actualizaciones generales, usar updateOrderStatus
     const order = await orderService.updateOrderStatus(orderId, req.body, userId);
-    
+
     res.json({
         success: true,
         message: 'Pedido actualizado exitosamente',
@@ -147,7 +150,7 @@ router.put('/admin/:id', authenticateToken, requireAdmin, asyncHandler(async (re
 router.post('/', authenticateToken, asyncHandler(async (req, res) => {
     const userId = req.user.user_id;
     const order = await orderService.createOrder(req.body, userId);
-    
+
     res.status(201).json({
         success: true,
         data: order
@@ -169,7 +172,7 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     };
 
     const result = await orderService.getUserOrders(userId, filters);
-    
+
     res.json({
         success: true,
         data: result.orders,
@@ -188,7 +191,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     const isAdmin = req.user.role === 'admin';
 
     const order = await orderService.getOrderById(orderId, userId, isAdmin);
-    
+
     res.json({
         success: true,
         data: order
@@ -210,7 +213,7 @@ router.put('/:id/cancel', authenticateToken, asyncHandler(async (req, res) => {
     }
 
     const order = await orderService.cancelOrder(orderId, userId, reason);
-    
+
     res.json({
         success: true,
         message: 'Pedido cancelado exitosamente',
@@ -229,11 +232,68 @@ router.get('/:id/history', authenticateToken, asyncHandler(async (req, res) => {
     const isAdmin = req.user.role === 'admin';
 
     const history = await orderService.getOrderHistory(orderId, userId, isAdmin);
-    
+
     res.json({
         success: true,
         data: history
     });
 }));
 
+// Número de pedido único: ORD-YYYYMMDD-XXXXXX
+function genOrderNumber() {
+    const ymd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const rnd = randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+    return `ORD-${ymd}-${rnd}`;
+}
+
+const isNonEmpty = v => typeof v === 'string' && v.trim().length > 0;
+const isEmail = v => isNonEmpty(v) && /\S+@\S+\.\S+/.test(v);
+const isPhone = v => isNonEmpty(v) && v.replace(/[^\d]/g, '').length >= 8;
+
+router.post(
+    '/checkout',
+    authenticateToken,           // 👈 requiere JWT
+    asyncHandler(async (req, res) => {
+        const userId = req.user.user_id;
+        const { customer, items, shippingMethod, notes } = req.body || {};
+
+        const errors = [];
+        if (!customer) errors.push('Faltan datos de cliente');
+        if (!Array.isArray(items) || items.length === 0) errors.push('El carrito está vacío');
+        if (customer) {
+            if (!isNonEmpty(customer.fullName)) errors.push('Nombre completo requerido');
+            if (!isEmail(customer.email)) errors.push('Email inválido');
+            if (!isPhone(customer.phone)) errors.push('Teléfono inválido');
+            if (!isNonEmpty(customer.address)) errors.push('Dirección requerida');
+            if (!isNonEmpty(customer.city)) errors.push('Ciudad requerida');
+            if (!isNonEmpty(customer.zip)) errors.push('Código postal requerido');
+        }
+        if (errors.length) return res.status(400).json({ errors });
+
+        const normalizedItems = items.map(i => ({
+            productId: Number(i.productId),
+            name: String(i.name ?? ''),
+            price: Number(i.price ?? 0),
+            quantity: Number(i.quantity ?? 0),
+        }));
+
+        const orderNumber = genOrderNumber();
+
+        const payload = {
+            orderNumber,           // si tu service ya genera, lo ignorará o lo guardará
+            customer,
+            items: normalizedItems,
+            shippingMethod: shippingMethod ?? 'standard',
+            notes: notes ?? null,
+        };
+
+        const order = await orderService.createOrder(payload, userId);
+
+        res.status(201).json({
+            success: true,
+            message: 'Pedido creado correctamente',
+            data: { orderNumber: order.orderNumber ?? orderNumber, order },
+        });
+    })
+);
 export default router;
