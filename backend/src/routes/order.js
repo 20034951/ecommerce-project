@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import express from 'express';
 import orderService from '../services/orderService.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
@@ -237,6 +238,8 @@ router.get('/:id/history', authenticateToken, asyncHandler(async (req, res) => {
     });
 }));
 =======
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
 import express from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
@@ -316,6 +319,9 @@ router.put(
     res.status(200).json({ message: "Order status updated", order });
   })
 );
+<<<<<<< HEAD
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
 
 export default router;

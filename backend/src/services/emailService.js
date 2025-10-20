@@ -161,12 +161,16 @@ class EmailService {
                                 <p><strong>Tu contraseña ha sido cambiada exitosamente.</strong></p>
                             </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
                             <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString(
                               "es-ES"
                             )}.</p>
 =======
                             <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString("es-ES")}.</p>
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+                            <p>La contraseña de tu cuenta fue actualizada el ${new Date().toLocaleString("es-ES")}.</p>
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
                             <p>Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.</p>
                         </div>
                         <div class="footer">
@@ -183,12 +187,16 @@ class EmailService {
                 Hola ${userName || "Usuario"},
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString(
                   "es-ES"
                 )}.
 =======
                 Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString("es-ES")}.
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+                Tu contraseña ha sido cambiada exitosamente el ${new Date().toLocaleString("es-ES")}.
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
 
                 Si no realizaste este cambio, contacta inmediatamente con nuestro equipo de soporte.
             `;
@@ -218,6 +226,7 @@ class EmailService {
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   async sendOrderConfirmation(order) {
     try {
@@ -536,6 +545,8 @@ class EmailService {
         html: htmlContent,
         tags: [{ name: "category", value: "order_cancelled" }],
 =======
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
   async sendOrderStatusEmail(to, userName, orderId, status, totalAmount) {
     try {
       if (this.isDevelopment) {
@@ -577,7 +588,10 @@ class EmailService {
         html: htmlContent,
         text: `Hola ${userName || "Cliente"}, tu pedido #${orderId} ahora está "${statusMessages[status] || status}".`,
         tags: [{ name: "category", value: "order_status_update" }],
+<<<<<<< HEAD
 >>>>>>> b0f7616 (Add: order email notification and update README)
+=======
+>>>>>>> 0359c693c7df266ec4cc571c43ee3dd5ccd25c8d
       });
 
       if (error) {
