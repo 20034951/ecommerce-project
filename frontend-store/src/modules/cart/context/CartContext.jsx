@@ -6,20 +6,26 @@ const USE_SERVER_CART = import.meta?.env?.VITE_USE_SERVER_CART === 'true';
 export const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-    const [cart, setCart] = useState([]);
+    const [cart, setCart] = useState(() => {
+        // Inicializar con el valor del localStorage
+        try {
+            const saved = localStorage.getItem('cart');
+            return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+            console.error('Error cargando carrito del localStorage:', error);
+            return [];
+        }
+    });
     const [isLoading, setIsLoading] = useState(false);
 
-    // Cargar del localStorage (y en el futuro del backend)
+    // Persistir en localStorage cuando el carrito cambie
     useEffect(() => {
-        const saved = localStorage.getItem('cart');
-        if (saved) {
-            try { setCart(JSON.parse(saved)); } catch { }
+        try {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            console.log('Carrito guardado en localStorage:', cart);
+        } catch (error) {
+            console.error('Error guardando carrito en localStorage:', error);
         }
-    }, []);
-
-    // Persistir en localStorage
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
     const addToCart = (product, quantity = 1) => {
