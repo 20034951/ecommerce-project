@@ -126,11 +126,7 @@ router.put('/:id',
 router.delete('/:id',
   asyncHandler(async (req, res) => {
     console.log(`[DELETE] /products/${req.params.id}`);
-    const deleted = await ProductService.delete(req.params.id);
-
-    if (!deleted) {
-      return res.status(404).json({ message: 'Producto no encontrado para eliminar' });
-    }
+    await ProductService.delete(req.params.id);
 
     await invalidateCacheByPrefix(CACHE_PREFIX_ALL);
     await invalidateCache([CACHE_KEY_BY_ID(req.params.id)]);
