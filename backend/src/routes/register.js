@@ -185,6 +185,7 @@ router.get("/verify", authenticateToken, asyncHandler(async (req, res) => {
             user_id: req.user.user_id,
             name: req.user.name,
             email: req.user.email,
+            phone: req.user.phone,
             role: req.user.role
         }
     });

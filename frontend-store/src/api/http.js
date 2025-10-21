@@ -173,7 +173,14 @@ class HttpClient {
    * Método principal para realizar peticiones HTTP
    */
   async request(url, options = {}) {
-    const fullUrl = `${this.baseURL}${url}`;
+    // Construir query string si hay params
+    let fullUrl = `${this.baseURL}${url}`;
+    if (options.params) {
+      const queryString = new URLSearchParams(options.params).toString();
+      if (queryString) {
+        fullUrl += `?${queryString}`;
+      }
+    }
     
     // Preparar headers por defecto
     const defaultHeaders = {

@@ -29,6 +29,15 @@ export const productsApi = {
     return queryString
       ? httpClient.get(`/api/products/category/${categoryId}?${queryString}`)
       : httpClient.get(`/api/products/category/${categoryId}`);
+  },
+
+  /**
+   * Busca productos por término de búsqueda
+   * @param {string} query - Término de búsqueda
+   * @returns {Promise<Object>} - Resultados de búsqueda
+   */
+  search: async (query) => {
+    return httpClient.get(`/api/products/search?q=${encodeURIComponent(query)}`);
   }
 }
 

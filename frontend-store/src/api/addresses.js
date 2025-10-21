@@ -11,7 +11,9 @@ export const addressesApi = {
     getAll: async (type = null) => {
         const params = type ? { type } : {};
         const response = await apiClient.get('/api/addresses', { params });
-        return response.data;
+        // El httpClient ya devuelve el JSON parseado directamente
+        // que contiene { success: true, data: [...] }
+        return response;
     },
 
     /**
@@ -20,7 +22,7 @@ export const addressesApi = {
      */
     getById: async (id) => {
         const response = await apiClient.get(`/api/addresses/${id}`);
-        return response.data;
+        return response;
     },
 
     /**
@@ -29,7 +31,7 @@ export const addressesApi = {
      */
     create: async (data) => {
         const response = await apiClient.post('/api/addresses', data);
-        return response.data;
+        return response;
     },
 
     /**
@@ -39,7 +41,7 @@ export const addressesApi = {
      */
     update: async (id, data) => {
         const response = await apiClient.put(`/api/addresses/${id}`, data);
-        return response.data;
+        return response;
     },
 
     /**
@@ -48,7 +50,7 @@ export const addressesApi = {
      */
     delete: async (id) => {
         const response = await apiClient.delete(`/api/addresses/${id}`);
-        return response.data;
+        return response;
     }
 };
 
