@@ -14,6 +14,25 @@ const CACHE_KEY_BY_ID = (id) => `shipping-method:${id}`;
 const CACHE_TTL = 300; // 5 minutos
 
 // ============================================
+// RUTAS PÚBLICAS
+// ============================================
+
+/**
+ * @route GET /api/shipping-methods
+ * @desc Get all active shipping methods (Public)
+ * @access Public
+ */
+router.get('/',
+    cacheMiddleware(CACHE_KEY_ALL, CACHE_TTL),
+    asyncHandler(async (req, res) => {
+        const shippingMethods = await ShippingMethod.findAll({
+            order: [['cost', 'ASC']]
+        });
+        res.status(200).json(shippingMethods);
+    })
+);
+
+// ============================================
 // RUTAS DE ADMINISTRADOR
 // ============================================
 

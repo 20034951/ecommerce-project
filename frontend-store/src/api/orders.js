@@ -7,7 +7,8 @@ export const ordersApi = {
      */
     createOrder: async (orderData) => {
         const response = await http.post('/api/orders', orderData);
-        return response.data;
+        // httpClient ya devuelve el JSON parseado directamente
+        return response;
     },
 
     /**
@@ -16,14 +17,17 @@ export const ordersApi = {
      * payload: {
      *   customer: { fullName, email, phone, address, city, zip },
      *   items: [{ productId, name, price, quantity, image? }],
-     *   shippingMethod: 'standard'|'express',
-     *   notes?: string
+     *   shippingMethodId: number,
+     *   notes?: string,
+     *   addressId?: number,
+     *   saveAddress?: boolean
      * }
      * Devuelve: { success, message, data: { orderNumber, order } }
      */
     checkout: async (payload) => {
         const res = await http.post('/api/orders/checkout', payload);
-        return res.data;
+        // httpClient ya devuelve el JSON parseado directamente
+        return res;
     },
 
 
@@ -42,7 +46,7 @@ export const ordersApi = {
         if (search) params.append('search', search);
 
         const response = await http.get(`/api/orders?${params.toString()}`);
-        return response.data;
+        return response;
     },
 
     /**
@@ -50,7 +54,7 @@ export const ordersApi = {
      */
     getOrderById: async (orderId) => {
         const response = await http.get(`/api/orders/${orderId}`);
-        return response.data;
+        return response;
     },
 
     /**
@@ -58,7 +62,7 @@ export const ordersApi = {
      */
     cancelOrder: async (orderId, reason) => {
         const response = await http.put(`/api/orders/${orderId}/cancel`, { reason });
-        return response.data;
+        return response;
     },
 
     /**
@@ -66,7 +70,7 @@ export const ordersApi = {
      */
     getOrderHistory: async (orderId) => {
         const response = await http.get(`/api/orders/${orderId}/history`);
-        return response.data;
+        return response;
     },
 };
 
