@@ -266,61 +266,63 @@ router.post(
             customer,
             items,
             shippingMethod,
+            shippingMethodId,
             notes,
-            addressId: addressIdFromBody
+            addressId: addressIdFromBody,
+            saveAddress
         } = req.body || {};
 
         const errors = [];
         if (!customer) errors.push('Faltan datos de cliente');
         if (!Array.isArray(items) || items.length === 0) errors.push('El carrito está vacío');
+        
+        // Validar datos del cliente
         if (customer) {
             if (!isNonEmpty(customer.fullName)) errors.push('Nombre completo requerido');
             if (!isEmail(customer.email)) errors.push('Email inválido');
             if (!isPhone(customer.phone)) errors.push('Teléfono inválido');
-            if (!isNonEmpty(customer.address)) errors.push('Dirección requerida');
-            if (!isNonEmpty(customer.city)) errors.push('Ciudad requerida');
-            // zip es opcional en tu esquema (postal_code permite NULL)
+            
+            // Solo validar dirección si NO se proporciona addressId
+            if (!addressIdFromBody) {
+                if (!isNonEmpty(customer.address)) errors.push('Dirección requerida');
+                if (!isNonEmpty(customer.city)) errors.push('Ciudad requerida');
+            }
         }
         if (errors.length) return res.status(400).json({ errors });
 
         // ——— Resolver addressId usando la tabla user_address ———
         let addressId = addressIdFromBody ?? null;
 
-        if (!addressId) {
-            // 1) intentar usar alguna existente del usuario
-            const existing = await db.UserAddress.findOne({
-                where: { user_id: userId },
-                order: [['address_id', 'ASC']]
+        // Si se proporciona addressId, verificar que pertenezca al usuario
+        if (addressId) {
+            const validAddress = await db.UserAddress.findOne({
+                where: { address_id: addressId, user_id: userId }
             });
 
-            if (existing) {
-                addressId = existing.address_id;
+            if (!validAddress) {
+                return res.status(400).json({
+                    errors: ['La dirección seleccionada no es válida o no pertenece al usuario']
+                });
             }
-        }
+        } else {
+            // No se proporcionó addressId, crear una nueva dirección
+            if (!customer.address || !customer.city) {
+                return res.status(400).json({
+                    errors: ['Dirección y ciudad son requeridos cuando no se selecciona una dirección guardada']
+                });
+            }
 
-        if (!addressId) {
-            // 2) crear una dirección mínima VALIDA para tu esquema real
             const created = await db.UserAddress.create({
                 user_id: userId,
                 address_line: customer.address,
                 city: customer.city,
                 state: customer.state || null,
                 country: customer.country || 'GT',
-                type: 'shipping',
+                type: saveAddress ? 'shipping' : 'billing',
                 postal_code: customer.zip || null
             });
 
             addressId = created.address_id;
-        }
-
-        const validAddress = await db.UserAddress.findOne({
-            where: { address_id: addressId, user_id: userId }
-        });
-
-        if (!validAddress) {
-            return res.status(500).json({
-                message: 'No se pudo resolver addressId para el usuario',
-            });
         }
 
         // Normalizar items y calcular total
@@ -338,6 +340,9 @@ router.post(
 
         const orderNumber = genOrderNumber();
 
+        // Usar shippingMethodId del body o por defecto null
+        const resolvedShippingMethodId = shippingMethodId || null;
+
         const payload = {
             // Lo que tu service espera:
             addressId,                  // ✅ requerido por createOrder
@@ -345,7 +350,7 @@ router.post(
             totalAmount,                // ✅ requerido por el modelo Order
 
             // Opcionales (tu service los ignora o usa si están):
-            shippingMethodId: null,
+            shippingMethodId: resolvedShippingMethodId,
             couponId: null,
 
             // Metadatos extra

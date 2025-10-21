@@ -212,28 +212,46 @@ class EmailService {
 
   async sendOrderConfirmation(order) {
     try {
-      const { user, order_id, total_amount, items, created_at } = order;
+      const { user, order_id, total_amount, items, created_at, orderNumber } = order;
 
       if (this.isDevelopment) {
         console.log("📧 [DEV MODE] Order Confirmation Email:");
         console.log(`   To: ${user.email}`);
-        console.log(`   Order ID: ${order_id}`);
-        console.log(`   Total: $${total_amount}`);
+        console.log(`   Order Number: ${orderNumber || order_id}`);
+        console.log(`   Total: Q ${total_amount}`);
       }
+
+      // Calcular subtotal (sin envío)
+      const subtotal = items.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) * item.quantity);
+      }, 0);
+
+      // Formatear moneda en Quetzales
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('es-GT', {
+          style: 'currency',
+          currency: 'GTQ',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(amount);
+      };
 
       const itemsList = items
         .map(
           (item) => `
                 <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
-                      item.product.name
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd;">${
+                      item.product?.name || item.name || 'Producto'
                     }</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">${
                       item.quantity
                     }</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${parseFloat(
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(
                       item.price
-                    ).toFixed(2)}</td>
+                    )}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right; font-weight: 600;">${formatCurrency(
+                      parseFloat(item.price) * item.quantity
+                    )}</td>
                 </tr>
             `
         )
@@ -246,34 +264,56 @@ class EmailService {
                     <meta charset="utf-8">
                     <title>Confirmación de Pedido</title>
                     <style>
-                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background-color: #28a745; color: white; padding: 20px; text-align: center; }
-                        .content { padding: 20px; background-color: #f9f9f9; }
+                        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+                        .container { max-width: 600px; margin: 20px auto; background-color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; }
+                        .header h1 { margin: 0; font-size: 28px; }
+                        .content { padding: 30px 20px; }
+                        .order-number { background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                        .order-number strong { color: #667eea; font-size: 20px; }
                         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th { background-color: #f2f2f2; padding: 10px; text-align: left; }
-                        .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; }
+                        th { background-color: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; }
+                        .summary { background-color: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; }
+                        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+                        .summary-row:last-child { border-bottom: none; }
+                        .summary-total { font-size: 20px; font-weight: bold; color: #667eea; margin-top: 10px; padding-top: 15px; border-top: 2px solid #667eea; }
+                        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+                        .info-box { background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin: 20px 0; color: #0c5460; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>✅ Pedido Confirmado</h1>
+                            <h1>✅ ¡Pedido Confirmado!</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px;">Gracias por tu compra</p>
                         </div>
                         <div class="content">
-                            <h2>¡Gracias por tu compra, ${user.name}!</h2>
-                            <p>Tu pedido #${order_id} ha sido recibido y está siendo procesado.</p>
-                            <p><strong>Fecha del pedido:</strong> ${new Date(
-                              created_at
-                            ).toLocaleString("es-ES")}</p>
+                            <h2>¡Hola ${user.name}!</h2>
+                            <p>Tu pedido ha sido recibido exitosamente y está siendo procesado. Te enviaremos actualizaciones sobre el estado de tu envío.</p>
                             
-                            <h3>Resumen del pedido:</h3>
+                            <div class="order-number">
+                                <p style="margin: 0;">Número de Orden</p>
+                                <strong>${orderNumber || `#${order_id}`}</strong>
+                            </div>
+                            
+                            <p><strong>📅 Fecha del pedido:</strong> ${new Date(
+                              created_at
+                            ).toLocaleString("es-GT", {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</p>
+                            
+                            <h3 style="color: #495057; margin-top: 30px;">📦 Detalles del Pedido</h3>
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Producto</th>
-                                        <th style="text-align: center;">Cantidad</th>
-                                        <th style="text-align: right;">Precio</th>
+                                        <th style="text-align: center; width: 80px;">Cant.</th>
+                                        <th style="text-align: right; width: 100px;">Precio</th>
+                                        <th style="text-align: right; width: 100px;">Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -281,22 +321,70 @@ class EmailService {
                                 </tbody>
                             </table>
                             
-                            <div class="total">
-                                Total: $${parseFloat(total_amount).toFixed(2)}
+                            <div class="summary">
+                                <div class="summary-row">
+                                    <span>Subtotal:</span>
+                                    <span>${formatCurrency(subtotal)}</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Envío:</span>
+                                    <span>${subtotal >= 300 ? 'Gratis' : 'A calcular'}</span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span>Total:</span>
+                                    <span>${formatCurrency(total_amount)}</span>
+                                </div>
                             </div>
                             
-                            <p>Te notificaremos cuando tu pedido sea enviado.</p>
+                            <div class="info-box">
+                                <strong>ℹ️ ¿Qué sigue?</strong>
+                                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                    <li>Procesaremos tu pedido en las próximas 24 horas</li>
+                                    <li>Te enviaremos un correo cuando tu pedido sea enviado</li>
+                                    <li>Podrás rastrear tu pedido con el número de seguimiento</li>
+                                </ul>
+                            </div>
+                            
+                            <p style="margin-top: 30px;">Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos.</p>
+                        </div>
+                        <div class="footer">
+                            <p><strong>E-commerce Guatemala</strong></p>
+                            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+                            <p>Si necesitas ayuda, contacta con nuestro equipo de soporte.</p>
                         </div>
                     </div>
                 </body>
                 </html>
             `;
 
+      const textContent = `
+                ¡Pedido Confirmado!
+
+                Hola ${user.name},
+
+                Tu pedido ha sido recibido exitosamente.
+
+                Número de Orden: ${orderNumber || `#${order_id}`}
+                Fecha: ${new Date(created_at).toLocaleString("es-GT")}
+
+                Productos:
+                ${items.map(item => `- ${item.product?.name || item.name}: ${item.quantity} x ${formatCurrency(item.price)} = ${formatCurrency(parseFloat(item.price) * item.quantity)}`).join('\n')}
+
+                Subtotal: ${formatCurrency(subtotal)}
+                Envío: ${subtotal >= 300 ? 'Gratis' : 'A calcular'}
+                Total: ${formatCurrency(total_amount)}
+
+                Te notificaremos cuando tu pedido sea enviado.
+                
+                Gracias por tu compra.
+            `;
+
       const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,
         to: [user.email, "delivered@resend.dev"],
-        subject: `Confirmación de Pedido #${order_id}`,
+        subject: `Confirmación de Pedido ${orderNumber || `#${order_id}`} - E-commerce`,
         html: htmlContent,
+        text: textContent,
         tags: [{ name: "category", value: "order_confirmation" }],
       });
 

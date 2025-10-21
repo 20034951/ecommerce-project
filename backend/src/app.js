@@ -89,7 +89,7 @@ const startServer = async () => {
     app.use("/api/auth", authRoutes);
     app.use("/api/auth", passwordResetRoutes);
     app.use("/api/categories", categoryRoutes);
-    app.use("/api/products", productRoutes);
+    app.use("/api/products", productRoutes); // Incluye ruta de búsqueda /search
     app.use("/api/users", userRoutes);
     app.use("/api/customers", customerRoutes);
     app.use("/api/orders", orderRoutes);
