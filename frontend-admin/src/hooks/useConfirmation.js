@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 export const useConfirmation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +11,22 @@ export const useConfirmation = () => {
     onConfirm: null
   });
   const [loading, setLoading] = useState(false);
+  const [resolver, setResolver] = useState(null);
+
+  const confirm = useCallback((options = {}) => {
+    return new Promise((resolve) => {
+      setConfirmationData({
+        title: options.title || '¿Estás seguro?',
+        message: options.message || '¿Deseas continuar con esta acción?',
+        confirmText: options.confirmText || 'Confirmar',
+        cancelText: options.cancelText || 'Cancelar',
+        type: options.type || 'question',
+        onConfirm: options.onConfirm || null
+      });
+      setResolver(() => resolve);
+      setIsOpen(true);
+    });
+  }, []);
 
   const showConfirmation = (options = {}) => {
     setConfirmationData({
@@ -24,31 +40,44 @@ export const useConfirmation = () => {
     setIsOpen(true);
   };
 
-  const hideConfirmation = () => {
+  const hideConfirmation = useCallback(() => {
     setIsOpen(false);
     setLoading(false);
-  };
+    if (resolver) {
+      resolver(false);
+      setResolver(null);
+    }
+  }, [resolver]);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     if (confirmationData.onConfirm) {
       try {
         setLoading(true);
         await confirmationData.onConfirm();
-        hideConfirmation();
+        setIsOpen(false);
+        setLoading(false);
+        if (resolver) {
+          resolver(true);
+          setResolver(null);
+        }
       } catch (error) {
         console.error('Error in confirmation handler:', error);
         setLoading(false);
-        // No cerrar el modal si hay error, para que el usuario pueda ver el error
       }
     } else {
-      hideConfirmation();
+      setIsOpen(false);
+      if (resolver) {
+        resolver(true);
+        setResolver(null);
+      }
     }
-  };
+  }, [confirmationData, resolver]);
 
   return {
     isOpen,
     confirmationData,
     loading,
+    confirm,
     showConfirmation,
     hideConfirmation,
     handleConfirm
