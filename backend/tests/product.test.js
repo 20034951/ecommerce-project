@@ -5,6 +5,10 @@ import db from '../src/models/index.js';
 describe('Product API', () => {
     let categoryId;
     let productId;
+    let productWithOrderId;
+    let orderId;
+    let userId;
+    let addressId;
 
     beforeAll(async () => {
         const category = await db.Category.create({
@@ -12,6 +16,28 @@ describe('Product API', () => {
             description: 'Books and more books'
         });
         categoryId = category.id;
+
+        // Crear un usuario para las órdenes
+        const user = await db.User.create({
+            first_name: 'Test',
+            last_name: 'User',
+            email: 'testuser@example.com',
+            password_hash: 'hashedpassword',
+            phone: '12345678'
+        });
+        userId = user.user_id;
+
+        // Crear una dirección para el usuario
+        const address = await db.UserAddress.create({
+            user_id: userId,
+            address_line_1: 'Test Street 123',
+            city: 'Test City',
+            state: 'Test State',
+            postal_code: '12345',
+            country: 'Test Country',
+            is_default: true
+        });
+        addressId = address.address_id;
     });
 
     test('POST /api/products/ -> creates product', async () => {
@@ -74,5 +100,41 @@ describe('Product API', () => {
 
         expect(res.status).toBe(400);
         expect(res.body.error).toBe('Invalid category');
+    });
+
+    test('DELETE /api/products/:id -> cannot delete product with orders', async () => {
+        // Crear un producto asociado a una orden
+        const product = await db.Product.create({
+            name: 'Product with Order',
+            description: 'This product has an order',
+            price: 29.99,
+            stock: 5,
+            category_id: categoryId,
+            sku: 'PROD-ORDER-001'
+        });
+        productWithOrderId = product.product_id;
+
+        // Crear una orden
+        const order = await db.Order.create({
+            user_id: userId,
+            address_id: addressId,
+            total_amount: 29.99,
+            status: 'pending'
+        });
+        orderId = order.order_id;
+
+        // Crear un item de orden asociado al producto
+        await db.OrderItem.create({
+            order_id: orderId,
+            product_id: productWithOrderId,
+            quantity: 1,
+            price: 29.99
+        });
+
+        // Intentar eliminar el producto
+        const res = await request(app).delete(`/api/products/${productWithOrderId}`);
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatch(/No se puede eliminar el producto porque está asociado a una o más órdenes/i);
     });
 });

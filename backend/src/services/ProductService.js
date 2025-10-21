@@ -1,8 +1,9 @@
 import db from '../models/index.js';
 import HttpError from '../utils/HttpError.js';
 import Paginator from '../utils/Paginator.js';
+import { Op } from 'sequelize';
 
-const { Product, Category } = db;
+const { Product, Category, OrderItem } = db;
 
 class ProductService {
     
@@ -13,11 +14,24 @@ class ProductService {
     async getAll(query) {
     
         const paginatorObj = new Paginator(query)
-            .allowSort(['name', 'price', 'created_at'])
-            .allowFilter(['name', 'category_id', 'price']) // ** add any other that you need **
+            .allowSort(['name', 'price', 'stock', 'created_at'])
+            .allowFilter(['name', 'category_id', 'price', 'stock'])
             .build();
 
-        const { limit, offset, order, where } = paginatorObj;
+        let { limit, offset, order, where } = paginatorObj;
+
+        // Agregar filtros especiales de stock
+        if (query.lowStock === 'true' || query.lowStock === true) {
+            where = {
+                ...where,
+                stock: { [Op.lte]: 10, [Op.gt]: 0 }
+            };
+        } else if (query.inStock === 'true' || query.inStock === true) {
+            where = {
+                ...where,
+                stock: { [Op.gt]: 0 }
+            };
+        }
 
         const { rows, count } = await Product.findAndCountAll({
             limit,
@@ -89,7 +103,18 @@ class ProductService {
     async delete(id) {
         const product = await Product.findByPk(id);
         if (!product) throw new HttpError(404, 'Product not found');
+        
+        // Verificar si el producto está asociado a alguna orden
+        const orderItemsCount = await OrderItem.count({
+            where: { product_id: id }
+        });
+
+        if (orderItemsCount > 0) {
+            throw new HttpError(400, 'No se puede eliminar el producto porque está asociado a una o más órdenes');
+        }
+
         await product.destroy();
+        return true;
     }
 }
 
