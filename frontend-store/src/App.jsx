@@ -44,7 +44,6 @@ function App() {
           </Suspense>
         </CartProvider>
       </AuthProvider>
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
       <Toaster position="top-right" />
     </QueryClientProvider>
   );
