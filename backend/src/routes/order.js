@@ -269,7 +269,10 @@ router.post(
             shippingMethodId,
             notes,
             addressId: addressIdFromBody,
-            saveAddress
+            saveAddress,
+            couponCode,
+            couponId,
+            totalAmount: totalAmountFromBody
         } = req.body || {};
 
         const errors = [];
@@ -333,7 +336,9 @@ router.post(
             quantity: Number(i.quantity ?? 0),
         }));
 
-        const totalAmount = normalizedItems.reduce(
+        // Use the total from frontend if provided (includes coupon discount + shipping)
+        // Otherwise calculate from items
+        const totalAmount = totalAmountFromBody || normalizedItems.reduce(
             (sum, i) => sum + (Number(i.price) * Number(i.quantity)),
             0
         );
@@ -347,11 +352,12 @@ router.post(
             // Lo que tu service espera:
             addressId,                  // ✅ requerido por createOrder
             items: normalizedItems,     // ✅
-            totalAmount,                // ✅ requerido por el modelo Order
+            totalAmount,                // ✅ requerido por el modelo Order (includes discount and shipping)
 
             // Opcionales (tu service los ignora o usa si están):
             shippingMethodId: resolvedShippingMethodId,
-            couponId: null,
+            couponId: couponId || null,
+            couponCode: couponCode || null,
 
             // Metadatos extra
             orderNumber,
