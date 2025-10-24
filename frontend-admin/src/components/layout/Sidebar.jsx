@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Package, 
-  FolderTree, 
-  ShoppingCart, 
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  FolderTree,
+  ShoppingCart,
   Settings,
   Shield,
   Menu,
   X,
   Bug,
   ChevronRight,
-  Truck
-} from 'lucide-react';
-import { cn } from '../../utils/cn.js';
-import { useSidebar } from '../../contexts/SidebarContext.jsx';
+  Truck,
+  Ticket,
+} from "lucide-react";
+import { cn } from "../../utils/cn.js";
+import { useSidebar } from "../../contexts/SidebarContext.jsx";
 
 /**
  * Sidebar moderno con diseño actualizado y soporte completo para modo oscuro
@@ -23,62 +24,71 @@ import { useSidebar } from '../../contexts/SidebarContext.jsx';
 
 const navigation = [
   {
-    name: 'Dashboard',
-    href: '/admin/dashboard',
+    name: "Dashboard",
+    href: "/admin/dashboard",
     icon: LayoutDashboard,
-    description: 'Panel principal'
+    description: "Panel principal",
   },
   {
-    name: 'Usuarios',
-    href: '/admin/users',
+    name: "Usuarios",
+    href: "/admin/users",
     icon: Users,
-    description: 'Gestión de usuarios'
+    description: "Gestión de usuarios",
   },
   {
-    name: 'Productos',
-    href: '/admin/products',
+    name: "Productos",
+    href: "/admin/products",
     icon: Package,
-    description: 'Catálogo de productos'
+    description: "Catálogo de productos",
   },
   {
-    name: 'Categorías',
-    href: '/admin/categories',
+    name: "Categorías",
+    href: "/admin/categories",
     icon: FolderTree,
-    description: 'Organización de productos'
+    description: "Organización de productos",
   },
   {
-    name: 'Pedidos',
-    href: '/admin/orders',
+    name: "Pedidos",
+    href: "/admin/orders",
     icon: ShoppingCart,
-    description: 'Gestión de pedidos'
+    description: "Gestión de pedidos",
   },
   {
-    name: 'Métodos de Envío',
-    href: '/admin/shipping-methods',
+    name: "Cupones",
+    href: "/admin/coupons",
+    icon: Ticket,
+    description: "Gestión de cupones",
+  },
+  {
+    name: "Métodos de Envío",
+    href: "/admin/shipping-methods",
     icon: Truck,
-    description: 'Opciones de entrega'
+    description: "Opciones de entrega",
   },
   {
-    name: 'Roles',
-    href: '/admin/roles',
+    name: "Roles",
+    href: "/admin/roles",
     icon: Shield,
-    description: 'Control de acceso'
+    description: "Control de acceso",
   },
   {
-    name: 'Configuración',
-    href: '/admin/settings',
+    name: "Configuración",
+    href: "/admin/settings",
     icon: Settings,
-    description: 'Ajustes del sistema'
-  }
+    description: "Ajustes del sistema",
+  },
 ];
 
 export function Sidebar() {
-  const { isMinimized, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useSidebar();
+  const { isMinimized, isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
+    useSidebar();
   const location = useLocation();
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const isActive = (href) => {
-    return location.pathname === href || location.pathname.startsWith(href + '/');
+    return (
+      location.pathname === href || location.pathname.startsWith(href + "/")
+    );
   };
 
   // Componente para el popover en modo minimizado
@@ -112,12 +122,14 @@ export function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo Section */}
-      <div className={cn(
-        "flex items-center border-b border-gray-100 dark:border-gray-800 transition-all duration-300",
-        isMinimized ? "justify-center px-4 py-6" : "justify-center px-6 py-8"
-      )}>
-        <Link 
-          to="/admin/dashboard" 
+      <div
+        className={cn(
+          "flex items-center border-b border-gray-100 dark:border-gray-800 transition-all duration-300",
+          isMinimized ? "justify-center px-4 py-6" : "justify-center px-6 py-8"
+        )}
+      >
+        <Link
+          to="/admin/dashboard"
           className="group flex items-center space-x-3 transition-transform hover:scale-105"
         >
           <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
@@ -137,10 +149,12 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className={cn(
-        "flex-1 py-6 space-y-2 overflow-y-auto transition-all duration-300",
-        isMinimized ? "px-2" : "px-4"
-      )}>
+      <nav
+        className={cn(
+          "flex-1 py-6 space-y-2 overflow-y-auto transition-all duration-300",
+          isMinimized ? "px-2" : "px-4"
+        )}
+      >
         {!isMinimized && (
           <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider px-3 mb-4">
             Navegación
@@ -149,17 +163,17 @@ export function Sidebar() {
         {navigation.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
-          
+
           return (
             <NavItemPopover key={item.name} item={item}>
               <Link
                 to={item.href}
                 className={cn(
-                  'group relative flex items-center text-sm font-medium rounded-xl transition-all duration-200 ease-in-out',
-                  isMinimized ? 'justify-center p-3' : 'px-3 py-3',
+                  "group relative flex items-center text-sm font-medium rounded-xl transition-all duration-200 ease-in-out",
+                  isMinimized ? "justify-center p-3" : "px-3 py-3",
                   active
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-[1.02]'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white hover:transform hover:scale-[1.01]'
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-[1.02]"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white hover:transform hover:scale-[1.01]"
                 )}
                 onClick={closeMobileMenu}
                 title={isMinimized ? item.name : undefined}
@@ -168,41 +182,49 @@ export function Sidebar() {
                 {active && !isMinimized && (
                   <div className="absolute -left-4 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
                 )}
-                
-                <div className={cn(
-                  'flex items-center justify-center rounded-lg transition-colors',
-                  isMinimized ? 'w-8 h-8' : 'w-8 h-8 mr-3',
-                  active
-                    ? 'bg-white/20'
-                    : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
-                )}>
+
+                <div
+                  className={cn(
+                    "flex items-center justify-center rounded-lg transition-colors",
+                    isMinimized ? "w-8 h-8" : "w-8 h-8 mr-3",
+                    active
+                      ? "bg-white/20"
+                      : "bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600"
+                  )}
+                >
                   <Icon
                     className={cn(
-                      'h-4 w-4 transition-colors',
+                      "h-4 w-4 transition-colors",
                       active
-                        ? 'text-white'
-                        : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                        ? "text-white"
+                        : "text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"
                     )}
                   />
                 </div>
-                
+
                 {!isMinimized && (
                   <>
                     <div className="flex-1 min-w-0">
-                      <div className={cn(
-                        'text-sm font-medium truncate',
-                        active ? 'text-white' : ''
-                      )}>
+                      <div
+                        className={cn(
+                          "text-sm font-medium truncate",
+                          active ? "text-white" : ""
+                        )}
+                      >
                         {item.name}
                       </div>
-                      <div className={cn(
-                        'text-xs opacity-75 truncate',
-                        active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
-                      )}>
+                      <div
+                        className={cn(
+                          "text-xs opacity-75 truncate",
+                          active
+                            ? "text-white/80"
+                            : "text-gray-500 dark:text-gray-400"
+                        )}
+                      >
                         {item.description}
                       </div>
                     </div>
-                    
+
                     {active && (
                       <ChevronRight className="h-4 w-4 text-white/60" />
                     )}
@@ -249,10 +271,12 @@ export function Sidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className={cn(
-        "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300",
-        isMinimized ? "lg:w-20" : "lg:w-64"
-      )}>
+      <div
+        className={cn(
+          "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300",
+          isMinimized ? "lg:w-20" : "lg:w-64"
+        )}
+      >
         <SidebarContent />
       </div>
 
@@ -264,7 +288,7 @@ export function Sidebar() {
             className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={closeMobileMenu}
           />
-          
+
           {/* Sidebar */}
           <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-in-out lg:hidden">
             <SidebarContent />
