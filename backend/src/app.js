@@ -7,8 +7,9 @@ import tokenCleanup from "./middleware/tokenCleanup.js";
 import db from "./models/index.js";
 import { initRedis } from "./utils/redisClient.js";
 import seedDatabase from "./seedDatabase.js";
-import cookieParser from "cookie-parser";
+//import cookieParser from "cookie-parser";
 import cartRoutes from "./routes/cart.routes.js";
+import couponRoutes from "./routes/coupon.js";
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+//app.use(cookieParser());
 
 // Montar rutas del carrito (cookie cart_id)
 app.use("/api/cart", cartRoutes);
@@ -79,9 +80,11 @@ const startServer = async () => {
     const userRoutes = (await import("./routes/user.js")).default;
     const customerRoutes = (await import("./routes/customer.js")).default;
     const authRoutes = (await import("./routes/register.js")).default;
-    const passwordResetRoutes = (await import("./routes/passwordReset.js")).default;
+    const passwordResetRoutes = (await import("./routes/passwordReset.js"))
+      .default;
     const orderRoutes = (await import("./routes/order.js")).default;
-    const shippingMethodRoutes = (await import("./routes/shippingMethod.js")).default;
+    const shippingMethodRoutes = (await import("./routes/shippingMethod.js"))
+      .default;
     const addressRoutes = (await import("./routes/address.js")).default;
     // ⚠️ OJO: NO importamos aquí ./routes/seed.js para evitar traer faker al boot
 
@@ -95,6 +98,7 @@ const startServer = async () => {
     app.use("/api/orders", orderRoutes);
     app.use("/api/shipping-methods", shippingMethodRoutes);
     app.use("/api/addresses", addressRoutes);
+    app.use("/api/coupons", couponRoutes);
 
     // Rutas de seed (solo en desarrollo)
     if (process.env.NODE_ENV === "development") {
@@ -116,14 +120,17 @@ const startServer = async () => {
           return seedRoutes(req, res, next); // los routers de Express son funciones (req,res,next)
         } catch (e) {
           console.error("Fallo al cargar rutas de seed:", e);
-          return res.status(500).json({ error: "Rutas de seed no disponibles" });
+          return res
+            .status(500)
+            .json({ error: "Rutas de seed no disponibles" });
         }
       });
     }
 
     // Sincronizar BD
     console.log("🔄 Sincronizando base de datos...");
-    await db.sequelize.sync({ alter: true });
+    //await db.sequelize.sync({ alter: true });
+    console.log("✅ Database ready (manual migrations used)");
     console.log("✅ Base de datos sincronizada");
 
     // Error handler al final
