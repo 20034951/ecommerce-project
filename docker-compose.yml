@@ -82,6 +82,7 @@ services:
       - MYSQL_PASSWORD_TEST=${MYSQL_PASSWORD_TEST}
       - MYSQL_HOST_TEST=${MYSQL_HOST_TEST}
       - MYSQL_PORT_TEST=${MYSQL_PORT_TEST}
+      - PEXELS_API_KEY_TEST=${PEXELS_API_KEY_TEST}
     ports:
       - "${PORT}:${PORT}"
     logging:

@@ -13,6 +13,14 @@ export default (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: true
         },
+        emoji: {
+            type: DataTypes.STRING(10),
+            allowNull: true
+        },
+        color: {
+            type: DataTypes.STRING(50),
+            allowNull: true
+        },
         parent_id: {
             type: DataTypes.INTEGER,
             allowNull: true,

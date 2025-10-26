@@ -7,35 +7,39 @@
 import { faker } from '@faker-js/faker';
 import db from '../models/index.js';
 
-const { Order, OrderItem, OrderStatusHistory, UserAddress, User, Product, ShippingMethod } = db;
+const { Order, OrderItem, OrderStatusHistory, UserAddress, User, Product, ShippingMethod, PaymentMethod, Coupon } = db;
 
 // Estados posibles de un pedido
 const ORDER_STATUSES = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
 
+// Empresas de transporte guatemaltecas
+const guatemalanCarriers = ['FORZA', 'CARGO', 'GUATEX', 'KINGO', 'UBER'];
+
 // Generador de número de tracking
 const generateTrackingNumber = () => {
-    const prefix = faker.helpers.arrayElement(['UPS', 'FDX', 'DHL', 'USPS']);
-    const number = faker.string.numeric(12);
+    const prefix = faker.helpers.arrayElement(guatemalanCarriers);
+    const number = faker.string.numeric(10);
     return `${prefix}${number}`;
 };
 
 // Generador de URL de tracking
 const generateTrackingUrl = (trackingNumber) => {
     const carriers = {
-        'UPS': 'https://www.ups.com/track?tracknum=',
-        'FDX': 'https://www.fedex.com/fedextrack/?tracknumbers=',
-        'DHL': 'https://www.dhl.com/track?trackingNumber=',
-        'USPS': 'https://tools.usps.com/go/TrackConfirmAction?tLabels='
+        'FORZA': 'https://rastreo.forzadelivery.com/',
+        'CARGO': 'https://www.cargoexpreso.com/tracking/?guia=',
+        'GUATEX': 'https://www.guatex.com/rastreo/',
+        'KINGO': 'https://www.kingo.com.gt/rastreo/',
+        'UBER': 'https://www.uber.com/gt/es/deliver/tracking/'
     };
-    const carrier = trackingNumber.substring(0, 3);
-    const baseUrl = carriers[carrier] || carriers['UPS'];
+    const carrier = trackingNumber.split(/[0-9]/)[0];
+    const baseUrl = carriers[carrier] || carriers['FORZA'];
     return baseUrl + trackingNumber;
 };
 
 // Crear pedido con items aleatorios
-const createOrderWithItems = async (userId, addressId, products, shippingMethod, status, adminId) => {
-    // Seleccionar 1-5 productos aleatorios
-    const numItems = faker.number.int({ min: 1, max: 5 });
+const createOrderWithItems = async (userId, addressId, products, shippingMethod, status, adminId, paymentMethods, coupons) => {
+    // Seleccionar 1-10 productos aleatorios
+    const numItems = faker.number.int({ min: 1, max: 10 });
     const selectedProducts = faker.helpers.arrayElements(products, numItems);
 
     // Calcular total
@@ -57,13 +61,35 @@ const createOrderWithItems = async (userId, addressId, products, shippingMethod,
     // Agregar costo de envío
     totalAmount += parseFloat(shippingMethod.cost);
 
+    // Aplicar cupón aleatoriamente (30% de probabilidad)
+    let couponId = null;
+    if (coupons && coupons.length > 0 && faker.datatype.boolean({ probability: 0.3 })) {
+        const coupon = faker.helpers.arrayElement(coupons);
+        couponId = coupon.coupon_id;
+
+        // Calcular descuento
+        let discount = 0;
+        if (coupon.type === 'percent') {
+            discount = (totalAmount * coupon.discount) / 100;
+        } else if (coupon.type === 'fixed') {
+            discount = parseFloat(coupon.discount);
+        }
+
+        totalAmount = Math.max(0, totalAmount - discount);
+    }
+
+    // Seleccionar método de pago aleatorio
+    const paymentMethod = faker.helpers.arrayElement(paymentMethods);
+
     // Datos del pedido según el estado
     const orderData = {
         user_id: userId,
         address_id: addressId,
         status,
         total_amount: totalAmount,
-        shipping_method_id: shippingMethod.shipping_method_id
+        shipping_method_id: shippingMethod.shipping_method_id,
+        payment_method_id: paymentMethod.payment_method_id,
+        coupon_id: couponId
     };
 
     // Configurar datos específicos según el estado
@@ -74,9 +100,10 @@ const createOrderWithItems = async (userId, addressId, products, shippingMethod,
     });
 
     // Calcular días estimados de entrega según el método
-    const estimatedDays = shippingMethod.name.includes('Premium') ? 1 : 
-                         shippingMethod.name.includes('Express') ? 3 :
-                         shippingMethod.name.includes('Internacional') ? 15 : 7;
+    const estimatedDays = shippingMethod.name.includes('2 horas') ? 1 :
+        shippingMethod.name.includes('Guatemala') ? 2 :
+            shippingMethod.name.includes('Salvador') ? 3 :
+                shippingMethod.name.includes('Internacional') ? 15 : 5;
 
     if (status === 'shipped' || status === 'delivered') {
         orderData.tracking_number = generateTrackingNumber();
@@ -95,7 +122,10 @@ const createOrderWithItems = async (userId, addressId, products, shippingMethod,
             'Producto sin stock',
             'Error en la dirección de envío',
             'Método de pago rechazado',
-            'Cliente cambió de opinión'
+            'Cliente cambió de opinión',
+            'Dirección fuera de zona de cobertura',
+            'Producto dañado en bodega',
+            'Pedido duplicado'
         ];
         orderData.cancellation_reason = faker.helpers.arrayElement(reasons);
         orderData.cancelled_at = new Date(createdAt.getTime() + faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000); // 1-48 horas después
@@ -148,7 +178,7 @@ const createStatusHistory = async (order, finalStatus, adminId, orderCreatedAt) 
     for (let i = 0; i < flow.length; i++) {
         const status = flow[i];
         const notes = statusNotes[status];
-        
+
         // El primer estado lo crea el sistema, los demás el admin
         const changedBy = i === 0 ? null : adminId;
 
@@ -167,7 +197,7 @@ const createStatusHistory = async (order, finalStatus, adminId, orderCreatedAt) 
     }
 };
 
-export const seedOrders = async (users, products, shippingMethods) => {
+export const seedOrders = async (users, products, shippingMethods, ordersPerUser = 5) => {
     const orders = [];
 
     // Si no se pasan parámetros, obtenerlos de la BD
@@ -181,15 +211,26 @@ export const seedOrders = async (users, products, shippingMethods) => {
         shippingMethods = await ShippingMethod.findAll();
     }
 
+    // Obtener métodos de pago
+    const paymentMethods = await PaymentMethod.findAll();
+    if (paymentMethods.length === 0) {
+        throw new Error('No hay métodos de pago disponibles. Ejecuta primero el seeder de payment methods.');
+    }
+
+    // Obtener cupones activos
+    const coupons = await Coupon.findAll({ where: { status: 'active' } });
+
     // Obtener admin (primer usuario o el que tenga rol admin)
     const admin = users.find(u => u.role === 'admin') || users[0];
-    
+
     // Obtener clientes (todos menos el admin)
     const customers = users.filter(u => u.role === 'customer');
 
-    console.log(`   🎲 Generando órdenes para ${customers.length} clientes...`);
+    console.log(`   🎲 Generando ${ordersPerUser} órdenes para cada uno de los ${customers.length} clientes...`);
 
-    // Para cada cliente, crear 2-4 nuevos pedidos
+    let totalCreated = 0;
+
+    // Para cada cliente, crear N pedidos aleatorios
     for (const customer of customers) {
         // Obtener direcciones del cliente
         const addresses = await UserAddress.findAll({
@@ -198,36 +239,66 @@ export const seedOrders = async (users, products, shippingMethods) => {
 
         if (addresses.length === 0) continue;
 
-        const defaultAddress = addresses[0];
+        // Crear exactamente N pedidos por cliente
+        for (let i = 0; i < ordersPerUser; i++) {
+            // Seleccionar dirección aleatoria del cliente
+            const selectedAddress = faker.helpers.arrayElement(addresses);
 
-        // Crear 2-4 pedidos por cliente con diferentes estados
-        const numOrders = faker.number.int({ min: 2, max: 4 });
+            // Seleccionar un estado aleatorio (con distribución más realista)
+            // Más pedidos entregados y en proceso, menos cancelados
+            const statusWeights = [
+                { status: 'delivered', weight: 40 },
+                { status: 'shipped', weight: 25 },
+                { status: 'processing', weight: 15 },
+                { status: 'paid', weight: 10 },
+                { status: 'pending', weight: 5 },
+                { status: 'cancelled', weight: 5 }
+            ];
 
-        for (let i = 0; i < numOrders; i++) {
-            // Seleccionar un estado aleatorio
-            const status = faker.helpers.arrayElement(ORDER_STATUSES);
-            
+            // Seleccionar estado basado en pesos
+            const totalWeight = statusWeights.reduce((sum, item) => sum + item.weight, 0);
+            let random = faker.number.int({ min: 1, max: totalWeight });
+            let status = 'pending';
+
+            for (const item of statusWeights) {
+                if (random <= item.weight) {
+                    status = item.status;
+                    break;
+                }
+                random -= item.weight;
+            }
+
             // Seleccionar método de envío aleatorio
             const shippingMethod = faker.helpers.arrayElement(shippingMethods);
 
             try {
                 const order = await createOrderWithItems(
                     customer.user_id,
-                    defaultAddress.address_id,
+                    selectedAddress.address_id,
                     products,
                     shippingMethod,
                     status,
-                    admin.user_id
+                    admin.user_id,
+                    paymentMethods,
+                    coupons
                 );
 
                 orders.push(order);
+                totalCreated++;
+
+                // Mostrar progreso cada 100 órdenes
+                if (totalCreated % 100 === 0) {
+                    console.log(`      ✅ ${totalCreated} órdenes creadas hasta ahora...`);
+                }
             } catch (error) {
                 console.error(`   ⚠️  Error creando pedido:`, error.message);
             }
         }
     }
 
-    console.log(`   ✨ ${orders.length} órdenes nuevas creadas`);
+    console.log(`   ✨ ${totalCreated} órdenes nuevas creadas (${ordersPerUser} por cliente)`);
+    console.log(`   📊 Total de clientes procesados: ${customers.length}`);
+    console.log(`   📦 Promedio de productos por orden: 5.5`);
 
     return orders;
 };

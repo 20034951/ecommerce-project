@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Package, TrendingUp, Clock, Loader2 } from "lucide-react";
+import {
+  Search,
+  X,
+  Package,
+  TrendingUp,
+  Clock,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
 import httpClient from "../../api/http.js";
 
 const SearchBar = ({ className = "", onResultClick = () => {} }) => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const searchRef = useRef(null);
+  const loadingTimerRef = useRef(null);
   const navigate = useNavigate();
 
   // Cargar búsquedas recientes del localStorage
@@ -54,10 +64,23 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
     if (term.length < 2) return;
 
     setIsLoading(true);
+
+    // Delay mínimo de 200ms antes de mostrar el loading
+    loadingTimerRef.current = setTimeout(() => {
+      setShowLoading(true);
+    }, 200);
+
     try {
       // Usar httpClient en lugar de fetch directo
-      const data = await httpClient.get(`/api/products/search?q=${encodeURIComponent(term)}`);
-      
+      const data = await httpClient.get(
+        `/api/products/search?q=${encodeURIComponent(term)}`
+      );
+
+      // Limpiar el timer si la respuesta fue rápida
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+
       if (data.success) {
         setResults(data.data || []);
       } else {
@@ -66,8 +89,12 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
     } catch (err) {
       console.error("Error buscando productos:", err);
       setResults([]);
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
     } finally {
       setIsLoading(false);
+      setShowLoading(false);
     }
   };
 
@@ -81,15 +108,19 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
     setQuery("");
     setResults([]);
     setShowResults(false);
+    setShowLoading(false);
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current);
+    }
   };
 
   const handleProductClick = (product) => {
     // Guardar en búsquedas recientes
     saveRecentSearch(product.name);
-    
+
     // Navegar al producto
     navigate(`/products/${product.product_id}`);
-    
+
     // Limpiar y cerrar
     setQuery("");
     setResults([]);
@@ -102,10 +133,31 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
     handleSearch(searchTerm);
   };
 
+  const handleViewAllResults = () => {
+    if (query.trim()) {
+      // Guardar en búsquedas recientes
+      saveRecentSearch(query);
+
+      // Navegar al catálogo con el query de búsqueda
+      navigate(`/catalog?q=${encodeURIComponent(query.trim())}`);
+
+      // Limpiar y cerrar
+      setShowResults(false);
+      onResultClick();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && query.trim().length >= 2) {
+      e.preventDefault();
+      handleViewAllResults();
+    }
+  };
+
   const saveRecentSearch = (searchTerm) => {
     const updated = [
       searchTerm,
-      ...recentSearches.filter((s) => s !== searchTerm)
+      ...recentSearches.filter((s) => s !== searchTerm),
     ].slice(0, 5); // Mantener solo las últimas 5
 
     setRecentSearches(updated);
@@ -131,12 +183,13 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
         </div>
-        
+
         <input
           type="text"
           value={query}
           onChange={handleInputChange}
           onFocus={() => setShowResults(true)}
+          onKeyDown={handleKeyDown}
           placeholder="Buscar productos..."
           className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200"
           aria-label="Buscar productos"
@@ -144,7 +197,7 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
 
         {/* Botón de limpiar o loading */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-          {isLoading ? (
+          {showLoading ? (
             <Loader2 className="h-5 w-5 text-indigo-500 dark:text-indigo-400 animate-spin" />
           ) : query.length > 0 ? (
             <button
@@ -195,21 +248,31 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
           {/* Resultados de búsqueda */}
           {query.length >= 2 && (
             <>
-              {isLoading ? (
-                <div className="p-8 text-center">
+              {showLoading ? (
+                <div className="p-8 text-center animate-in fade-in duration-200">
                   <Loader2 className="h-8 w-8 text-indigo-500 dark:text-indigo-400 animate-spin mx-auto mb-2" />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Buscando productos...
                   </p>
                 </div>
               ) : results.length > 0 ? (
-                <>
+                <div className="animate-in fade-in duration-300">
                   <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        {results.length} {results.length === 1 ? "Resultado" : "Resultados"}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          {results.length}{" "}
+                          {results.length === 1 ? "Resultado" : "Resultados"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleViewAllResults}
+                        className="flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-200"
+                      >
+                        Ver todos
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
                     </div>
                   </div>
                   <div className="py-2">
@@ -262,9 +325,20 @@ const SearchBar = ({ className = "", onResultClick = () => {} }) => {
                       </button>
                     ))}
                   </div>
-                </>
+
+                  {/* Botón "Ver todos los resultados" al final */}
+                  <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={handleViewAllResults}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white rounded-lg font-medium text-sm transition-colors duration-200"
+                    >
+                      Ver todos los resultados
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               ) : (
-                <div className="p-8 text-center">
+                <div className="p-8 text-center animate-in fade-in duration-300">
                   <Package className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                     No se encontraron productos

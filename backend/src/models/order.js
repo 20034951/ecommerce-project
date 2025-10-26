@@ -73,6 +73,14 @@ export default (sequelize, DataTypes) => {
                 model: 'coupon',
                 key: 'coupon_id'
             }
+        },
+        payment_method_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'payment_methods',
+                key: 'payment_method_id'
+            }
         }
     }, {
         tableName: 'orders',
@@ -97,6 +105,10 @@ export default (sequelize, DataTypes) => {
         Order.belongsTo(models.Coupon, {
             foreignKey: 'coupon_id',
             as: 'coupon'
+        });
+        Order.belongsTo(models.PaymentMethod, {
+            foreignKey: 'payment_method_id',
+            as: 'paymentMethod'
         });
         Order.hasMany(models.OrderItem, {
             foreignKey: 'order_id',

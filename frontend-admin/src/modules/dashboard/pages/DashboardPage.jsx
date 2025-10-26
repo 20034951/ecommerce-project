@@ -1,15 +1,15 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Users, 
-  Package, 
-  DollarSign, 
-  ShoppingCart, 
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  Package,
+  TrendingUp,
+  ShoppingCart,
   AlertTriangle,
   Eye,
   RefreshCw,
-  Layers
-} from 'lucide-react';
+  Layers,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -21,68 +21,93 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '../../../components/ui';
-import { useDashboardStats, useLowStockProducts, useRecentOrders } from '../../../hooks/useDashboard';
+  Legend,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Badge,
+  Button,
+} from "../../../components/ui";
+import {
+  useDashboardStats,
+  useLowStockProducts,
+  useRecentOrders,
+} from "../../../hooks/useDashboard";
 
-// Configuración de colores para los estados de pedidos
+// Configuración de colores para los estados de pedidos (colores aleatorios vibrantes)
 const ORDER_STATUS_COLORS = {
-  pending: '#64748b',    // slate-500
-  paid: '#10b981',       // emerald-500
-  processing: '#f59e0b', // amber-500
-  shipped: '#3b82f6',    // blue-500
-  delivered: '#22c55e',  // green-500
-  cancelled: '#ef4444'   // red-500
+  pending: "#8b5cf6", // violet-500
+  paid: "#10b981", // emerald-500
+  processing: "#f59e0b", // amber-500
+  shipped: "#3b82f6", // blue-500
+  delivered: "#22c55e", // green-500
+  cancelled: "#ef4444", // red-500
 };
 
 const ORDER_STATUS_LABELS = {
-  pending: 'Pendientes',
-  paid: 'Pagados',
-  processing: 'Procesando',
-  shipped: 'Enviados',
-  delivered: 'Entregados',
-  cancelled: 'Cancelados'
+  pending: "Pendientes",
+  paid: "Pagados",
+  processing: "Procesando",
+  shipped: "Enviados",
+  delivered: "Entregados",
+  cancelled: "Cancelados",
 };
 
 export default function DashboardPage() {
-  const { data: stats, isLoading: isLoadingStats, refetch: refetchStats } = useDashboardStats();
-  const { data: lowStockProducts = [], isLoading: isLoadingLowStock } = useLowStockProducts(10);
-  const { data: recentOrders = [], isLoading: isLoadingOrders } = useRecentOrders(5);
+  const {
+    data: stats,
+    isLoading: isLoadingStats,
+    refetch: refetchStats,
+  } = useDashboardStats();
+  const { data: lowStockProducts = [], isLoading: isLoadingLowStock } =
+    useLowStockProducts(10);
+  const { data: recentOrders = [], isLoading: isLoadingOrders } =
+    useRecentOrders(5);
 
   // Procesar datos de órdenes para gráficos
   const ordersData = stats?.orders || [];
-  
+
   // Calcular totales
-  const totalOrders = ordersData.reduce((sum, stat) => sum + parseInt(stat.count || 0), 0);
-  const totalRevenue = ordersData.reduce((sum, stat) => sum + parseFloat(stat.total || 0), 0);
-  
-  // Datos para gráfico de barras
-  const barChartData = ordersData.map(stat => ({
+  const totalOrders = ordersData.reduce(
+    (sum, stat) => sum + parseInt(stat.count || 0),
+    0
+  );
+
+  // Total revenue SOLO de órdenes paid y delivered (igual que en reportes)
+  const totalRevenue = ordersData
+    .filter((stat) => stat.status === "paid" || stat.status === "delivered")
+    .reduce((sum, stat) => sum + parseFloat(stat.total || 0), 0);
+
+  // Datos para gráfico de barras con colores aleatorios
+  const barChartData = ordersData.map((stat) => ({
     status: ORDER_STATUS_LABELS[stat.status] || stat.status,
     cantidad: parseInt(stat.count || 0),
-    monto: parseFloat(stat.total || 0)
+    monto: parseFloat(stat.total || 0),
+    fill: ORDER_STATUS_COLORS[stat.status] || "#94a3b8",
   }));
 
   // Datos para gráfico circular
-  const pieChartData = ordersData.map(stat => ({
+  const pieChartData = ordersData.map((stat) => ({
     name: ORDER_STATUS_LABELS[stat.status] || stat.status,
     value: parseInt(stat.count || 0),
-    color: ORDER_STATUS_COLORS[stat.status] || '#94a3b8'
+    color: ORDER_STATUS_COLORS[stat.status] || "#94a3b8",
   }));
 
   const formatCurrency = (amount) => {
-    return `Q. ${parseFloat(amount || 0).toLocaleString('es-GT', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return `Q. ${parseFloat(amount || 0).toLocaleString("es-GT", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     })}`;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -90,7 +115,9 @@ export default function DashboardPage() {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-300">Cargando estadísticas...</p>
+        <p className="text-gray-600 dark:text-gray-300">
+          Cargando estadísticas...
+        </p>
       </div>
     );
   }
@@ -170,7 +197,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-amber-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                <DollarSign className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
               </div>
             </div>
           </CardContent>
@@ -223,7 +250,7 @@ export default function DashboardPage() {
                   Stock Bajo
                 </p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">
-                  {lowStockProducts.length}
+                  {stats?.lowStockCount || 0}
                 </p>
                 <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                   Requieren atención
@@ -250,7 +277,12 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span>Total de pedidos: <strong className="text-gray-900 dark:text-white">{totalOrders}</strong></span>
+                  <span>
+                    Total de pedidos:{" "}
+                    <strong className="text-gray-900 dark:text-white">
+                      {totalOrders}
+                    </strong>
+                  </span>
                 </div>
                 <div className="hidden sm:block text-gray-400">•</div>
                 <span>Histórico completo del sistema</span>
@@ -261,38 +293,52 @@ export default function DashboardPage() {
             {barChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={barChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-700" />
-                  <XAxis 
-                    dataKey="status" 
-                    stroke="#6b7280" 
-                    className="dark:stroke-gray-400"
-                    tick={{ fill: '#6b7280' }}
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#e5e7eb"
+                    className="dark:stroke-gray-700"
                   />
-                  <YAxis 
-                    stroke="#6b7280" 
+                  <XAxis
+                    dataKey="status"
+                    stroke="#6b7280"
                     className="dark:stroke-gray-400"
-                    tick={{ fill: '#6b7280' }}
+                    tick={{ fill: "#6b7280" }}
+                  />
+                  <YAxis
+                    stroke="#6b7280"
+                    className="dark:stroke-gray-400"
+                    tick={{ fill: "#6b7280" }}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem',
-                      padding: '0.75rem'
+                      backgroundColor: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.5rem",
+                      padding: "0.75rem",
                     }}
-                    labelStyle={{ color: '#111827', fontWeight: 'bold' }}
+                    labelStyle={{ color: "#111827", fontWeight: "bold" }}
                     formatter={(value, name) => {
-                      if (name === 'Cantidad') {
+                      if (name === "Cantidad") {
                         return [`${value} pedidos`, name];
                       }
                       return [value, name];
                     }}
                   />
-                  <Legend 
-                    wrapperStyle={{ paddingTop: '20px' }}
+                  <Legend
+                    wrapperStyle={{ paddingTop: "20px" }}
                     iconType="circle"
                   />
-                  <Bar dataKey="cantidad" fill="#8b5cf6" name="Cantidad" radius={[8, 8, 0, 0]} />
+                  <Bar
+                    dataKey="cantidad"
+                    name="Cantidad"
+                    radius={[8, 8, 0, 0]}
+                    label={{
+                      position: "top",
+                      fill: "#111827",
+                      fontSize: 14,
+                      fontWeight: "bold",
+                    }}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -306,8 +352,9 @@ export default function DashboardPage() {
                   📊 Información del gráfico
                 </p>
                 <p className="text-xs text-purple-700 dark:text-purple-300 mt-1">
-                  Este gráfico muestra la cantidad de pedidos agrupados por su estado actual. 
-                  Los datos incluyen todos los pedidos históricos registrados en el sistema.
+                  Este gráfico muestra la cantidad de pedidos agrupados por su
+                  estado actual. Los datos incluyen todos los pedidos históricos
+                  registrados en el sistema.
                 </p>
               </div>
             )}
@@ -333,7 +380,8 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {pieChartData.length > 0 && pieChartData.some(d => d.value > 0) ? (
+            {pieChartData.length > 0 &&
+            pieChartData.some((d) => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -341,7 +389,9 @@ export default function DashboardPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="value"
@@ -352,12 +402,15 @@ export default function DashboardPage() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem',
-                      padding: '0.75rem'
+                      backgroundColor: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.5rem",
+                      padding: "0.75rem",
                     }}
-                    formatter={(value, name) => [`${value} pedidos (${((value / totalOrders) * 100).toFixed(1)}%)`, name]}
+                    formatter={(value, name) => [
+                      `${value} pedidos (${((value / totalOrders) * 100).toFixed(1)}%)`,
+                      name,
+                    ]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -366,43 +419,48 @@ export default function DashboardPage() {
                 No hay datos de pedidos disponibles
               </div>
             )}
-            {pieChartData.length > 0 && pieChartData.some(d => d.value > 0) && (
-              <div className="mt-4 space-y-2">
-                {/* Leyenda personalizada con información */}
-                <div className="grid grid-cols-2 gap-2">
-                  {pieChartData.filter(d => d.value > 0).map((entry, index) => (
-                    <div
-                      key={`legend-${index}`}
-                      className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg"
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: entry.color }}
-                      ></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {entry.name}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {entry.value} ({((entry.value / totalOrders) * 100).toFixed(1)}%)
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+            {pieChartData.length > 0 &&
+              pieChartData.some((d) => d.value > 0) && (
+                <div className="mt-4 space-y-2">
+                  {/* Leyenda personalizada con información */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {pieChartData
+                      .filter((d) => d.value > 0)
+                      .map((entry, index) => (
+                        <div
+                          key={`legend-${index}`}
+                          className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg"
+                        >
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: entry.color }}
+                          ></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {entry.name}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {entry.value} (
+                              {((entry.value / totalOrders) * 100).toFixed(1)}%)
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Info box */}
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                    <p className="text-xs text-indigo-900 dark:text-indigo-100 font-medium">
+                      📊 Información del gráfico
+                    </p>
+                    <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1">
+                      Distribución porcentual de {totalOrders} pedidos totales.
+                      Cada segmento representa la proporción de pedidos en cada
+                      estado del sistema.
+                    </p>
+                  </div>
                 </div>
-                
-                {/* Info box */}
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                  <p className="text-xs text-indigo-900 dark:text-indigo-100 font-medium">
-                    📊 Información del gráfico
-                  </p>
-                  <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-1">
-                    Distribución porcentual de {totalOrders} pedidos totales. Cada segmento representa 
-                    la proporción de pedidos en cada estado del sistema.
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
           </CardContent>
         </Card>
       </div>
@@ -420,7 +478,9 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-red-700 dark:text-red-300">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <span>Umbral: <strong>≤ 10 unidades</strong></span>
+                  <span>
+                    Umbral: <strong>≤ 10 unidades</strong>
+                  </span>
                 </div>
                 <div className="hidden sm:block text-red-400">•</div>
                 <span>Requieren reabastecimiento</span>
@@ -448,7 +508,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 font-semibold">
-                      {product.stock_quantity} unidades
+                      {product.stock} unidades
                     </Badge>
                   </div>
                 ))}
@@ -457,10 +517,11 @@ export default function DashboardPage() {
                     to="/admin/products"
                     className="block text-center text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium pt-2"
                   >
-                    Ver todos ({lowStockProducts.length})
+                    Ver todos ({stats?.lowStockCount || lowStockProducts.length}
+                    )
                   </Link>
                 )}
-                
+
                 {/* Info adicional */}
                 <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
                   <p className="text-xs text-amber-900 dark:text-amber-100 font-medium flex items-center gap-1">
@@ -468,10 +529,10 @@ export default function DashboardPage() {
                     Acción recomendada
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                    {lowStockProducts.length === 1 
-                      ? 'Hay 1 producto que necesita reabastecimiento inmediato.'
-                      : `Hay ${lowStockProducts.length} productos que necesitan reabastecimiento inmediato.`
-                    } Considera actualizar el inventario pronto.
+                    {(stats?.lowStockCount || 0) === 1
+                      ? "Hay 1 producto que necesita reabastecimiento inmediato."
+                      : `Hay ${stats?.lowStockCount || 0} productos que necesitan reabastecimiento inmediato.`}{" "}
+                    Considera actualizar el inventario pronto.
                   </p>
                 </div>
               </div>
@@ -495,7 +556,9 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span>Últimos <strong>5 pedidos</strong></span>
+                  <span>
+                    Últimos <strong>5 pedidos</strong>
+                  </span>
                 </div>
                 <div className="hidden sm:block text-blue-400">•</div>
                 <span>Ordenados por fecha de creación</span>
@@ -524,7 +587,7 @@ export default function DashboardPage() {
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {order.user?.name || 'Usuario'}
+                        {order.user?.name || "Usuario"}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-500">
                         {formatDate(order.created_at)}
@@ -550,15 +613,16 @@ export default function DashboardPage() {
                 >
                   Ver todos los pedidos
                 </Link>
-                
+
                 {/* Info adicional */}
                 <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
                   <p className="text-xs text-blue-900 dark:text-blue-100 font-medium">
                     ℹ️ Información
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                    Mostrando los {recentOrders.length} pedidos más recientes. 
-                    Haz clic en "Ver" para acceder a los detalles completos de cada pedido.
+                    Mostrando los {recentOrders.length} pedidos más recientes.
+                    Haz clic en "Ver" para acceder a los detalles completos de
+                    cada pedido.
                   </p>
                 </div>
               </div>
