@@ -1,22 +1,31 @@
-import React from 'react';
-import { X, Package, DollarSign, Hash, Barcode, FileText, Tag, Calendar } from 'lucide-react';
-import { Badge } from '../../../components/ui/Badge.jsx';
+import React from "react";
+import {
+  X,
+  Package,
+  DollarSign,
+  Hash,
+  Barcode,
+  FileText,
+  Tag,
+  Calendar,
+} from "lucide-react";
+import { Badge } from "../../../components/ui/Badge.jsx";
 
 export default function ProductDetailModal({ isOpen, onClose, product }) {
   if (!isOpen || !product) return null;
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-GT', {
-      style: 'currency',
-      currency: 'GTQ'
+    return new Intl.NumberFormat("es-GT", {
+      style: "currency",
+      currency: "GTQ",
     }).format(price);
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('es-GT', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("es-GT", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -33,7 +42,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
@@ -72,8 +81,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
               <div className="flex-shrink-0">
                 <div className="w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden flex items-center justify-center">
                   {product.image_path ? (
-                    <img 
-                      src={product.image_path} 
+                    <img
+                      src={product.image_path}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
@@ -149,9 +158,32 @@ export default function ProductDetailModal({ isOpen, onClose, product }) {
                 </h4>
               </div>
               <div className="inline-flex items-center px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium">
-                {product.category?.name || 'Sin categoría'}
+                {product.category?.name || "Sin categoría"}
               </div>
             </div>
+
+            {/* Tags */}
+            {product.tags && product.tags.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Etiquetas
+                  </h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tagObj, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium"
+                    >
+                      <Tag className="h-3.5 w-3.5" />
+                      {tagObj.tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Fechas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">

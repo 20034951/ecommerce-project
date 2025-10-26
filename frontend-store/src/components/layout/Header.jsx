@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   User,
@@ -11,16 +11,14 @@ import {
   Moon,
   Package,
   MapPin,
-  UserCircle2
-} from 'lucide-react';
-import { Button } from '../ui';
-import { useAuth } from '../../auth/AuthProvider.jsx';
-import { AuthGuard } from '../../auth/Guards.jsx';
-import { useCart } from '../../modules/cart/hooks/useCart.js';
-import { useTheme } from '../../contexts/ThemeProvider.jsx';
-import SearchBar from './SearchBar.jsx';
-
-
+  UserCircle2,
+} from "lucide-react";
+import { Button } from "../ui";
+import { useAuth } from "../../auth/AuthProvider.jsx";
+import { AuthGuard } from "../../auth/Guards.jsx";
+import { useCart } from "../../modules/cart/hooks/useCart.js";
+import { useTheme } from "../../contexts/ThemeProvider.jsx";
+import SearchBar from "./SearchBar.jsx";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +31,7 @@ export function Header() {
   const handleLogout = async () => {
     await logout();
     setIsUserMenuOpen(false);
-    navigate('/');
+    navigate("/");
   };
 
   const closeMenus = () => {
@@ -47,8 +45,8 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center gap-2 group"
               onClick={closeMenus}
             >
@@ -68,12 +66,6 @@ export function Header() {
               className="text-gray-700 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
             >
               Catálogo
-            </Link>
-            <Link
-              to="/categories"
-              className="text-gray-700 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 px-3 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-            >
-              Categorías
             </Link>
             <Link
               to="/about"
@@ -100,16 +92,20 @@ export function Header() {
             <button
               onClick={toggleTheme}
               className="p-2 text-gray-700 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-              aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              aria-label={
+                theme === "dark"
+                  ? "Cambiar a modo claro"
+                  : "Cambiar a modo oscuro"
+              }
             >
-              {theme === 'dark' ? (
+              {theme === "dark" ? (
                 <Sun className="h-5 w-5" />
               ) : (
                 <Moon className="h-5 w-5" />
               )}
             </button>
 
-            {/* Wishlist */}
+            {/* Wishlist 
             <AuthGuard fallback={null}>
               <Link
                 to="/wishlist"
@@ -119,7 +115,7 @@ export function Header() {
               >
                 <Heart className="h-5 w-5" />
               </Link>
-            </AuthGuard>
+            </AuthGuard>*/}
 
             {/* Shopping Cart */}
             <Link
@@ -131,7 +127,7 @@ export function Header() {
               <ShoppingCart className="h-5 w-5" />
               {itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center shadow-sm">
-                  {itemCount > 9 ? '9+' : itemCount}
+                  {itemCount > 9 ? "9+" : itemCount}
                 </span>
               )}
             </Link>
@@ -143,14 +139,14 @@ export function Header() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate("/login")}
                     className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
                     Iniciar Sesión
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => navigate('/register')}
+                    onClick={() => navigate("/register")}
                     className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-sm"
                   >
                     Registrarse
@@ -159,7 +155,7 @@ export function Header() {
               }
             >
               <div className="relative hidden md:block">
-                <button 
+                <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center gap-2 p-2 text-gray-700 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   aria-label="Menú de usuario"
@@ -174,12 +170,12 @@ export function Header() {
                 {isUserMenuOpen && (
                   <>
                     {/* Backdrop */}
-                    <div 
-                      className="fixed inset-0 z-40" 
+                    <div
+                      className="fixed inset-0 z-40"
                       onClick={() => setIsUserMenuOpen(false)}
                       aria-hidden="true"
                     />
-                    
+
                     <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                       {/* User Info */}
                       <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
@@ -210,7 +206,7 @@ export function Header() {
                           </div>
                           <span>Mi Perfil</span>
                         </Link>
-                        
+
                         <Link
                           to="/orders"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -221,7 +217,7 @@ export function Header() {
                           </div>
                           <span>Mis Pedidos</span>
                         </Link>
-                        
+
                         <Link
                           to="/addresses"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -258,7 +254,11 @@ export function Header() {
               aria-label="Menú de navegación"
               aria-expanded={isMenuOpen}
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -302,31 +302,33 @@ export function Header() {
               </Link>
 
               {/* Mobile User Section */}
-              <AuthGuard fallback={
-                <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-800">
-                  <div className="flex flex-col gap-2 px-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => {
-                        navigate('/login');
-                        closeMenus();
-                      }}
-                    >
-                      Iniciar Sesión
-                    </Button>
-                    <Button
-                      className="w-full justify-center bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-sm"
-                      onClick={() => {
-                        navigate('/register');
-                        closeMenus();
-                      }}
-                    >
-                      Registrarse
-                    </Button>
+              <AuthGuard
+                fallback={
+                  <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-800">
+                    <div className="flex flex-col gap-2 px-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => {
+                          navigate("/login");
+                          closeMenus();
+                        }}
+                      >
+                        Iniciar Sesión
+                      </Button>
+                      <Button
+                        className="w-full justify-center bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-sm"
+                        onClick={() => {
+                          navigate("/register");
+                          closeMenus();
+                        }}
+                      >
+                        Registrarse
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              }>
+                }
+              >
                 <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-800">
                   {/* User Info Mobile */}
                   <div className="flex items-center gap-3 px-3 mb-3">
@@ -355,7 +357,7 @@ export function Header() {
                       </div>
                       <span>Mi Perfil</span>
                     </Link>
-                    
+
                     <Link
                       to="/orders"
                       className="flex items-center gap-3 px-3 py-2.5 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
@@ -366,7 +368,7 @@ export function Header() {
                       </div>
                       <span>Mis Pedidos</span>
                     </Link>
-                    
+
                     <Link
                       to="/addresses"
                       className="flex items-center gap-3 px-3 py-2.5 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"

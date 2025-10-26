@@ -18,6 +18,7 @@ import OrderItemModel from './orderItem.js';
 import OrderStatusHistoryModel from './orderStatusHistory.js';
 import UserSessionModel from './userSession.js';
 import PasswordResetTokenModel from './passwordResetToken.js';
+import PaymentMethodModel from './paymentMethod.js';
 
 // Inicializar modelos
 const Product = ProductModel(sequelize, DataTypes);
@@ -36,6 +37,7 @@ const OrderItem = OrderItemModel(sequelize, DataTypes);
 const OrderStatusHistory = OrderStatusHistoryModel(sequelize, DataTypes);
 const UserSession = UserSessionModel(sequelize, DataTypes);
 const PasswordResetToken = PasswordResetTokenModel(sequelize, DataTypes);
+const PaymentMethod = PaymentMethodModel(sequelize, DataTypes);
 
 // Configurar asociaciones
 const models = {
@@ -54,7 +56,8 @@ const models = {
     OrderItem,
     OrderStatusHistory,
     UserSession,
-    PasswordResetToken
+    PasswordResetToken,
+    PaymentMethod
 };
 
 // Ejecutar asociaciones

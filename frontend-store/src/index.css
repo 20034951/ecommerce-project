@@ -53,7 +53,6 @@
   --color-error-950: #450a0a;
 }
 
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -102,6 +101,59 @@
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* Animaciones personalizadas para Hero Section */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+.animate-fade-in-delay {
+  opacity: 0;
+  animation: fade-in 1s ease-out 0.3s forwards;
+}
+
+.animate-fade-in-delay-2 {
+  opacity: 0;
+  animation: fade-in 1s ease-out 0.6s forwards;
+}
+
+/* Animación para cambio de frases en Hero */
+@keyframes phrase-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-phrase-change {
+  animation: phrase-fade-in 0.8s ease-out forwards;
+}
+
+/* Ocultar scrollbar en slider */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

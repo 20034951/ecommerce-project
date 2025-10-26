@@ -1,5 +1,6 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { ScrollToTop } from "../components/common/ScrollToTop.jsx";
 
 export function AuthLayout() {
   return (
@@ -7,6 +8,7 @@ export function AuthLayout() {
       <div className="max-w-md w-full space-y-8">
         <Outlet />
       </div>
+      <ScrollToTop />
     </div>
   );
 }

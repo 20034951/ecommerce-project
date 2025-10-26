@@ -1,10 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast, Toaster } from 'react-hot-toast';
-import { ShoppingCart, Package, ArrowLeft, Tag, Layers, TrendingUp, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import productsApi from '../../../api/products';
-import ProductCard from '../components/ProductCard.jsx';
-import { useCart } from '../../cart/hooks/useCart';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast, Toaster } from "react-hot-toast";
+import {
+  ShoppingCart,
+  Package,
+  ArrowLeft,
+  Tag,
+  Layers,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Hash,
+} from "lucide-react";
+import productsApi from "../../../api/products";
+import ProductCard from "../components/ProductCard.jsx";
+import { useCart } from "../../cart/hooks/useCart";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -19,10 +30,10 @@ export default function ProductDetailPage() {
 
   // Función para formatear precio en Quetzales
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-GT', {
-      style: 'currency',
-      currency: 'GTQ',
-      minimumFractionDigits: 2
+    return new Intl.NumberFormat("es-GT", {
+      style: "currency",
+      currency: "GTQ",
+      minimumFractionDigits: 2,
     }).format(price);
   };
 
@@ -30,21 +41,23 @@ export default function ProductDetailPage() {
   const getStockBadge = (stock) => {
     if (stock === 0) {
       return {
-        text: 'Agotado',
+        text: "Agotado",
         icon: <XCircle className="h-4 w-4" />,
-        color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+        color: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300",
       };
     } else if (stock <= 10) {
       return {
         text: `Últimas ${stock} unidades`,
         icon: <AlertCircle className="h-4 w-4" />,
-        color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+        color:
+          "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300",
       };
     } else {
       return {
-        text: 'En stock',
+        text: "En stock",
         icon: <CheckCircle className="h-4 w-4" />,
-        color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+        color:
+          "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
       };
     }
   };
@@ -61,18 +74,26 @@ export default function ProductDetailPage() {
           limit: 8,
           page: 1,
         });
-        const filtered = relatedRes.items.filter(p => p.product_id !== res.product_id);
+        const filtered = relatedRes.items.filter(
+          (p) => p.product_id !== res.product_id
+        );
         setRelated(filtered);
       }
     } catch (err) {
-      console.error('Error fetching product detail:', err);
-      toast.error('No se pudo cargar el producto');
+      console.error("Error fetching product detail:", err);
+      toast.error("No se pudo cargar el producto");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Scroll suave hasta arriba al cargar el detalle
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+
     fetchProductDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -85,9 +106,9 @@ export default function ProductDetailPage() {
   // 👇 handler real para agregar al carrito
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     if (product.stock === 0) {
-      toast.error('Producto sin stock');
+      toast.error("Producto sin stock");
       return;
     }
 
@@ -107,27 +128,28 @@ export default function ProductDetailPage() {
     try {
       // El contexto de carrito usa addToCart(product, quantity)
       addToCart(item, quantity);
-      
+
       toast.success(
-        `✅ ${quantity} ${quantity === 1 ? 'unidad' : 'unidades'} agregada${quantity === 1 ? '' : 's'} al carrito`,
+        `✅ ${quantity} ${quantity === 1 ? "unidad" : "unidades"} agregada${quantity === 1 ? "" : "s"} al carrito`,
         {
           duration: 3000,
           style: {
-            borderRadius: '12px',
-            background: '#10b981',
-            color: '#fff',
-            padding: '16px',
-            fontSize: '14px',
-            fontWeight: '500',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            borderRadius: "12px",
+            background: "#10b981",
+            color: "#fff",
+            padding: "16px",
+            fontSize: "14px",
+            fontWeight: "500",
+            boxShadow:
+              "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
           },
         }
       );
-      
+
       setQuantity(1); // Reset quantity
     } catch (e) {
-      console.error('Error agregando al carrito:', e);
-      toast.error('No se pudo agregar al carrito');
+      console.error("Error agregando al carrito:", e);
+      toast.error("No se pudo agregar al carrito");
     }
   };
 
@@ -169,10 +191,14 @@ export default function ProductDetailPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
             <Package className="h-16 w-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{NOT_FOUND}</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">El producto que buscas no está disponible</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+              {NOT_FOUND}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              El producto que buscas no está disponible
+            </p>
             <button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate("/products")}
               className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -188,10 +214,10 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
-          className: 'dark:bg-gray-800 dark:text-white',
+          className: "dark:bg-gray-800 dark:text-white",
           duration: 3000,
         }}
       />
@@ -212,7 +238,7 @@ export default function ProductDetailPage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
             <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
               <img
-                src={product.image_path || '/images/products/default.jpg'}
+                src={product.image_path || "/images/products/default.jpg"}
                 alt={product.name}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
@@ -250,7 +276,9 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Badge de stock */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm w-fit ${stockBadge.color}`}>
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm w-fit ${stockBadge.color}`}
+            >
               {stockBadge.icon}
               <span>{stockBadge.text}</span>
             </div>
@@ -267,6 +295,29 @@ export default function ProductDetailPage() {
               </div>
             )}
 
+            {/* Tags del producto */}
+            {product.tags && product.tags.length > 0 && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-3">
+                  <Hash className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Etiquetas
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag.tag_id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-200 dark:border-indigo-700"
+                    >
+                      <Hash className="w-3 h-3" />
+                      {tag.tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Selector de cantidad y botón agregar */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 space-y-4">
               {/* Selector de cantidad */}
@@ -280,14 +331,18 @@ export default function ProductDetailPage() {
                     disabled={quantity <= 1}
                     className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
                   >
-                    <span className="text-xl text-gray-700 dark:text-gray-300">−</span>
+                    <span className="text-xl text-gray-700 dark:text-gray-300">
+                      −
+                    </span>
                   </button>
                   <input
                     type="number"
                     min="1"
                     max={product.stock}
                     value={quantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      handleQuantityChange(parseInt(e.target.value) || 1)
+                    }
                     className="w-20 text-center px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-colors duration-200"
                   />
                   <button
@@ -295,7 +350,9 @@ export default function ProductDetailPage() {
                     disabled={quantity >= product.stock}
                     className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200"
                   >
-                    <span className="text-xl text-gray-700 dark:text-gray-300">+</span>
+                    <span className="text-xl text-gray-700 dark:text-gray-300">
+                      +
+                    </span>
                   </button>
                 </div>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -320,7 +377,7 @@ export default function ProductDetailPage() {
                 className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-indigo-500/20"
               >
                 <ShoppingCart className="h-6 w-6" />
-                <span>{product.stock === 0 ? 'Sin stock' : ADD_TO_CART}</span>
+                <span>{product.stock === 0 ? "Sin stock" : ADD_TO_CART}</span>
               </button>
             </div>
           </div>
@@ -331,7 +388,9 @@ export default function ProductDetailPage() {
           <div className="mt-16">
             <div className="flex items-center gap-3 mb-6">
               <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{RELATED}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {RELATED}
+              </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {related.map((prod) => (

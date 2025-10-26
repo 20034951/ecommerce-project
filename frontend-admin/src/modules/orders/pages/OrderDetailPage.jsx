@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   Badge,
-  Alert
-} from '../../../components/ui';
+  Alert,
+} from "../../../components/ui";
 import {
   ArrowLeft,
   Calendar,
@@ -24,79 +24,86 @@ import {
   AlertCircle,
   DollarSign,
   Coins,
-  ExternalLink
-} from 'lucide-react';
-import { UpdateOrderStatusForm, OrderTimeline } from '../components';
-import { useOrder } from '../../../hooks/useOrder';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ordersApi } from '../../../api/ordersApi';
+  ExternalLink,
+} from "lucide-react";
+import { UpdateOrderStatusForm, OrderTimeline } from "../components";
+import { useOrder } from "../../../hooks/useOrder";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ordersApi } from "../../../api/ordersApi";
 
 const STATUS_CONFIG = {
   pending: {
-    label: 'Pendiente',
-    className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-    icon: Clock
+    label: "Pendiente",
+    className:
+      "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
+    icon: Clock,
   },
   paid: {
-    label: 'Pagado',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    icon: CreditCard
+    label: "Pagado",
+    className:
+      "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+    icon: CreditCard,
   },
   processing: {
-    label: 'Procesando',
-    className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    icon: Package
+    label: "Procesando",
+    className:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+    icon: Package,
   },
   shipped: {
-    label: 'Enviado',
-    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    icon: Truck
+    label: "Enviado",
+    className:
+      "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
+    icon: Truck,
   },
   delivered: {
-    label: 'Entregado',
-    className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    icon: CheckCircle
+    label: "Entregado",
+    className:
+      "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+    icon: CheckCircle,
   },
   cancelled: {
-    label: 'Cancelado',
-    className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    icon: XCircle
-  }
+    label: "Cancelado",
+    className: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+    icon: XCircle,
+  },
 };
 
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   // Usar el hook useOrder para obtener los datos
   const { data: order, isLoading, error } = useOrder(id);
 
   // Mutation para actualizar el estado del pedido
-  const updateStatusMutation = useMutation({  
+  const updateStatusMutation = useMutation({
     mutationFn: (statusData) => ordersApi.updateOrderStatus(id, statusData),
     onSuccess: () => {
       // Invalidar las queries para refrescar los datos
-      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ["admin-order", id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     },
     onError: (error) => {
-      console.error('Error al actualizar estado:', error);
-    }
+      console.error("Error al actualizar estado:", error);
+    },
   });
 
   const handleUpdateStatus = async (statusData) => {
     try {
       await updateStatusMutation.mutateAsync(statusData);
     } catch (error) {
-      throw new Error(error.response?.data?.error || 'Error al actualizar el estado');
+      throw new Error(
+        error.response?.data?.error || "Error al actualizar el estado"
+      );
     }
   };
 
   const getStatusBadge = (status) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
     const Icon = config.icon;
-    
+
     return (
       <Badge className={`${config.className} flex items-center gap-1 w-fit`}>
         <Icon className="h-3 w-3" />
@@ -106,19 +113,19 @@ export default function OrderDetailPage() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatCurrency = (amount) => {
-    return `Q. ${parseFloat(amount).toLocaleString('es-GT', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return `Q. ${parseFloat(amount).toLocaleString("es-GT", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     })}`;
   };
 
@@ -126,7 +133,9 @@ export default function OrderDetailPage() {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-300">Cargando detalles del pedido...</p>
+        <p className="text-gray-600 dark:text-gray-300">
+          Cargando detalles del pedido...
+        </p>
       </div>
     );
   }
@@ -143,7 +152,7 @@ export default function OrderDetailPage() {
               Error al cargar el pedido
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {error?.message || 'No se pudo cargar el pedido'}
+              {error?.message || "No se pudo cargar el pedido"}
             </p>
             <Link
               to="/admin/orders"
@@ -157,7 +166,7 @@ export default function OrderDetailPage() {
       </div>
     );
   }
-  
+
   if (!order) {
     return null;
   }
@@ -189,7 +198,7 @@ export default function OrderDetailPage() {
           </div>
           {order && getStatusBadge(order.status)}
         </div>
-      </div> 
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -219,17 +228,20 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                            {item.product?.name || 'Producto'}
+                            {item.product?.name || "Producto"}
                           </h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            SKU: {item.product?.sku || 'N/A'}
+                            SKU: {item.product?.sku || "N/A"}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Cantidad: {item.quantity} × {formatCurrency(item.price)}
+                            Cantidad: {item.quantity} ×{" "}
+                            {formatCurrency(item.price)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Subtotal</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Subtotal
+                          </p>
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {formatCurrency(subtotal)}
                           </p>
@@ -237,7 +249,7 @@ export default function OrderDetailPage() {
                       </div>
                     );
                   })}
-                  
+
                   {/* Total de productos */}
                   <div className="pt-4">
                     <div className="flex justify-between items-center">
@@ -246,7 +258,10 @@ export default function OrderDetailPage() {
                       </span>
                       <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(
-                          order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                          order.items.reduce(
+                            (sum, item) => sum + item.price * item.quantity,
+                            0
+                          )
                         )}
                       </span>
                     </div>
@@ -261,7 +276,9 @@ export default function OrderDetailPage() {
           </Card>
 
           {/* Tracking Information */}
-          {(order.tracking_number || order.tracking_url || order.estimated_delivery) && (
+          {(order.tracking_number ||
+            order.tracking_url ||
+            order.estimated_delivery) && (
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader className="bg-blue-100 dark:bg-blue-900/50 border-b border-blue-200 dark:border-blue-800">
                 <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center">
@@ -301,11 +318,14 @@ export default function OrderDetailPage() {
                       Fecha Estimada de Entrega
                     </p>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {new Date(order.estimated_delivery).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(order.estimated_delivery).toLocaleDateString(
+                        "es-ES",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }
+                      )}
                     </p>
                   </div>
                 )}
@@ -331,12 +351,14 @@ export default function OrderDetailPage() {
           )}
 
           {/* Cancellation Info */}
-          {order?.status === 'cancelled' && order.cancellation_reason && (
+          {order?.status === "cancelled" && order.cancellation_reason && (
             <Alert variant="destructive">
               <XCircle className="h-4 w-4" />
               <div>
                 <p className="font-semibold">Pedido cancelado</p>
-                <p className="text-sm mt-1">Motivo: {order.cancellation_reason}</p>
+                <p className="text-sm mt-1">
+                  Motivo: {order.cancellation_reason}
+                </p>
               </div>
             </Alert>
           )}
@@ -364,14 +386,18 @@ export default function OrderDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3 pt-4">
               <div className="flex justify-between text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Total:</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Total:
+                </span>
                 <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">
-                  {order ? formatCurrency(order.total_amount) : '$0.00'}
+                  {order ? formatCurrency(order.total_amount) : "$0.00"}
                 </span>
               </div>
               {order?.shippingMethod && (
                 <div className="flex justify-between text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Método de envío:</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
+                    Método de envío:
+                  </span>
                   <span className="text-gray-900 dark:text-gray-100 font-medium">
                     {order.shippingMethod.name}
                   </span>
@@ -379,6 +405,32 @@ export default function OrderDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Payment Method */}
+          {order?.paymentMethod && (
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+              <CardHeader className="bg-green-100 dark:bg-green-900/50 border-b border-green-200 dark:border-green-800">
+                <CardTitle className="text-green-900 dark:text-green-100 flex items-center">
+                  <div className="p-2 bg-green-200 dark:bg-green-800 rounded-lg mr-2">
+                    <CreditCard className="h-5 w-5 text-green-700 dark:text-green-200" />
+                  </div>
+                  Método de Pago
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4">
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    {order.paymentMethod.name}
+                  </p>
+                  {order.paymentMethod.description && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      {order.paymentMethod.description}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Customer Info */}
           {order?.user && (
@@ -440,7 +492,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-200 dark:border-gray-600">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {order.address.city}, {order.address.state || ''}
+                    {order.address.city}, {order.address.state || ""}
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg border border-gray-200 dark:border-gray-600">

@@ -272,19 +272,20 @@ router.post(
             saveAddress,
             couponCode,
             couponId,
+            paymentMethodId,
             totalAmount: totalAmountFromBody
         } = req.body || {};
 
         const errors = [];
         if (!customer) errors.push('Faltan datos de cliente');
         if (!Array.isArray(items) || items.length === 0) errors.push('El carrito está vacío');
-        
+
         // Validar datos del cliente
         if (customer) {
             if (!isNonEmpty(customer.fullName)) errors.push('Nombre completo requerido');
             if (!isEmail(customer.email)) errors.push('Email inválido');
             if (!isPhone(customer.phone)) errors.push('Teléfono inválido');
-            
+
             // Solo validar dirección si NO se proporciona addressId
             if (!addressIdFromBody) {
                 if (!isNonEmpty(customer.address)) errors.push('Dirección requerida');
@@ -356,6 +357,7 @@ router.post(
 
             // Opcionales (tu service los ignora o usa si están):
             shippingMethodId: resolvedShippingMethodId,
+            paymentMethodId: paymentMethodId || null,
             couponId: couponId || null,
             couponCode: couponCode || null,
 

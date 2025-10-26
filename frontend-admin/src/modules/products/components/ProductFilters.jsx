@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Search, X, Filter, ChevronDown } from 'lucide-react';
-import { categoriesApi } from '../../../api/categories.js';
+import React, { useState, useEffect } from "react";
+import { Search, X, Filter, ChevronDown } from "lucide-react";
+import { categoriesApi } from "../../../api/categories.js";
 
 export default function ProductFilters({ filters, onFiltersChange }) {
   const [categories, setCategories] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [stockOperator, setStockOperator] = useState("gte");
+  const [stockValue, setStockValue] = useState("");
 
   useEffect(() => {
     loadCategories();
@@ -15,7 +17,7 @@ export default function ProductFilters({ filters, onFiltersChange }) {
       const response = await categoriesApi.getAll();
       setCategories(response.data || response || []);
     } catch (error) {
-      console.error('Error cargando categorías:', error);
+      console.error("Error cargando categorías:", error);
     }
   };
 
@@ -32,21 +34,56 @@ export default function ProductFilters({ filters, onFiltersChange }) {
   };
 
   const handleSortChange = (e) => {
-    const [sortBy, sortOrder] = e.target.value.split(':');
+    const [sortBy, sortOrder] = e.target.value.split(":");
     onFiltersChange({ ...filters, sortBy, sortOrder });
   };
 
+  const handleStockOperatorChange = (e) => {
+    setStockOperator(e.target.value);
+    if (stockValue) {
+      onFiltersChange({
+        ...filters,
+        stockOperator: e.target.value,
+        stockValue: parseInt(stockValue),
+      });
+    }
+  };
+
+  const handleStockValueChange = (e) => {
+    const value = e.target.value;
+    setStockValue(value);
+    if (value) {
+      onFiltersChange({
+        ...filters,
+        stockOperator,
+        stockValue: parseInt(value),
+      });
+    } else {
+      // Si se borra el valor, eliminar el filtro de stock
+      const newFilters = { ...filters };
+      delete newFilters.stockOperator;
+      delete newFilters.stockValue;
+      onFiltersChange(newFilters);
+    }
+  };
+
   const clearFilters = () => {
+    setStockOperator("gte");
+    setStockValue("");
     onFiltersChange({
-      search: '',
+      search: "",
       category_id: null,
       stockStatus: null,
-      sortBy: 'name',
-      sortOrder: 'asc'
+      sortBy: "name",
+      sortOrder: "asc",
     });
   };
 
-  const hasActiveFilters = filters.category_id || filters.stockStatus || filters.search;
+  const hasActiveFilters =
+    filters.category_id ||
+    filters.stockStatus ||
+    filters.search ||
+    filters.stockOperator;
 
   return (
     <div className="space-y-4">
@@ -58,13 +95,13 @@ export default function ProductFilters({ filters, onFiltersChange }) {
           </div>
           <input
             type="text"
-            value={filters.search || ''}
+            value={filters.search || ""}
             onChange={handleSearchChange}
-            placeholder="Buscar por nombre, SKU o descripción..."
+            placeholder="Buscar por nombre, SKU, descripción o tags..."
             className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200"
           />
         </div>
-        
+
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 border border-gray-300 dark:border-gray-600"
@@ -73,30 +110,41 @@ export default function ProductFilters({ filters, onFiltersChange }) {
           <span className="hidden sm:inline">Filtros</span>
           {hasActiveFilters && (
             <span className="ml-1 px-2 py-0.5 bg-indigo-600 dark:bg-indigo-500 text-white text-xs rounded-full">
-              {[filters.category_id, filters.stockStatus, filters.search].filter(Boolean).length}
+              {
+                [
+                  filters.category_id,
+                  filters.stockStatus,
+                  filters.search,
+                ].filter(Boolean).length
+              }
             </span>
           )}
-          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`}
+          />
         </button>
       </div>
 
       {/* Panel de filtros expandible */}
       {showFilters && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Categoría */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Categoría
               </label>
               <select
-                value={filters.category_id || ''}
+                value={filters.category_id || ""}
                 onChange={handleCategoryChange}
                 className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200"
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((category) => (
-                  <option key={category.category_id} value={category.category_id}>
+                  <option
+                    key={category.category_id}
+                    value={category.category_id}
+                  >
                     {category.name}
                   </option>
                 ))}
@@ -109,7 +157,7 @@ export default function ProductFilters({ filters, onFiltersChange }) {
                 Estado de Stock
               </label>
               <select
-                value={filters.stockStatus || ''}
+                value={filters.stockStatus || ""}
                 onChange={handleStockStatusChange}
                 className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200"
               >
@@ -118,6 +166,34 @@ export default function ProductFilters({ filters, onFiltersChange }) {
                 <option value="low-stock">Stock bajo (≤10)</option>
                 <option value="out-of-stock">Agotado</option>
               </select>
+            </div>
+
+            {/* Filtro dinámico de stock */}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Cantidad de Stock
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={stockOperator}
+                  onChange={handleStockOperatorChange}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200"
+                >
+                  <option value="gt">Mayor que {`>`}</option>
+                  <option value="gte">Mayor o igual ≥</option>
+                  <option value="lt">Menor que {`<`}</option>
+                  <option value="lte">Menor o igual ≤</option>
+                  <option value="eq">Igual a =</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  value={stockValue}
+                  onChange={handleStockValueChange}
+                  placeholder="Cantidad..."
+                  className="w-28 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-200"
+                />
+              </div>
             </div>
 
             {/* Ordenar por */}
@@ -140,18 +216,18 @@ export default function ProductFilters({ filters, onFiltersChange }) {
                 <option value="created_at:asc">Más antiguos</option>
               </select>
             </div>
+          </div>
 
-            {/* Botón limpiar */}
-            <div className="flex items-end">
-              <button
-                onClick={clearFilters}
-                disabled={!hasActiveFilters}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <X className="h-4 w-4" />
-                Limpiar filtros
-              </button>
-            </div>
+          {/* Botón limpiar */}
+          <div className="mt-4">
+            <button
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <X className="h-4 w-4" />
+              Limpiar todos los filtros
+            </button>
           </div>
         </div>
       )}
