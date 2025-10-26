@@ -7,10 +7,14 @@ export { Badge } from './Badge.jsx';
 export { Alert, AlertTitle, AlertDescription } from './Alert.jsx';
 export { Skeleton } from './Skeleton.jsx';
 export { Spinner } from './Spinner.jsx';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs.jsx';
+export { Tooltip } from './Tooltip.jsx';
 
 // Form Components
 export { Select, selectVariants } from './Select.jsx';
 export { Textarea, textareaVariants } from './Textarea.jsx';
+export { TagInput } from './TagInput.jsx';
+export { DateRangePicker } from './DateRangePicker.jsx';
 
 // Table Components
 export {

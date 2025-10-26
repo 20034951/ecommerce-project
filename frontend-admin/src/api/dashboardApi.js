@@ -9,19 +9,8 @@ export const dashboardApi = {
    * @returns {Promise<Object>} - Estadísticas generales
    */
   getStats: async () => {
-    const [ordersStats, usersCount, productsCount, categoriesCount] = await Promise.all([
-      httpClient.get('/api/orders/admin/stats'),
-      httpClient.get('/api/users'),
-      httpClient.get('/api/products'),
-      httpClient.get('/api/categories')
-    ]);
-
-    return {
-      orders: ordersStats.data || [],
-      totalUsers: Array.isArray(usersCount) ? usersCount.length : 0,
-      totalProducts: productsCount.pagination?.total || 0,
-      totalCategories: Array.isArray(categoriesCount) ? categoriesCount.length : 0
-    };
+    const response = await httpClient.get('/api/dashboard/stats');
+    return response.data;
   },
 
   /**
@@ -31,10 +20,8 @@ export const dashboardApi = {
    */
   getLowStockProducts: async (threshold = 10) => {
     try {
-      // Obtener todos los productos y filtrar localmente
-      const response = await httpClient.get('/api/products?limit=100');
-      const products = response.data || [];
-      return products.filter(p => p.stock_quantity <= threshold);
+      const response = await httpClient.get(`/api/dashboard/low-stock?threshold=${threshold}&limit=100`);
+      return response.data || [];
     } catch (error) {
       console.error('Error al obtener productos con stock bajo:', error);
       return [];
@@ -48,7 +35,7 @@ export const dashboardApi = {
    */
   getRecentOrders: async (limit = 5) => {
     try {
-      const response = await httpClient.get(`/api/orders/admin?limit=${limit}&page=1`);
+      const response = await httpClient.get(`/api/dashboard/recent-orders?limit=${limit}`);
       return response.data || [];
     } catch (error) {
       console.error('Error al obtener pedidos recientes:', error);

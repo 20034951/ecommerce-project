@@ -1,7 +1,8 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Header } from '../components/layout/Header.jsx';
-import { Footer } from '../components/layout/Footer.jsx';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Header } from "../components/layout/Header.jsx";
+import { Footer } from "../components/layout/Footer.jsx";
+import { ScrollToTop } from "../components/common/ScrollToTop.jsx";
 
 export function MainLayout() {
   return (
@@ -11,6 +12,7 @@ export function MainLayout() {
         <Outlet />
       </main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

@@ -14,6 +14,8 @@ export { default as productsApi } from './products.js';
 export { default as categoriesApi } from './categories.js';
 export { default as ordersApi } from './orders.js';
 export { default as addressesApi } from './addresses.js';
+export { default as paymentMethodsApi } from './paymentMethods.js';
+export { default as homeApi } from './home.js';
 
 // TODO: Agregar más APIs cuando se implementen
 // export { default as cartApi } from './cart.js';

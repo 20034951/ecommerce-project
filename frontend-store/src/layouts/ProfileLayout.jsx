@@ -1,15 +1,9 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Card, CardContent } from '../components/ui';
-import { 
-  User, 
-  Shield,
-  ShoppingBag, 
-  MapPin, 
-  Heart,
-  Camera
-} from 'lucide-react';
-import { useAuth } from '../auth/AuthProvider.jsx';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Card, CardContent } from "../components/ui";
+import { User, Shield, ShoppingBag, MapPin, Heart, Camera } from "lucide-react";
+import { useAuth } from "../auth/AuthProvider.jsx";
+import { ScrollToTop } from "../components/common/ScrollToTop.jsx";
 
 /**
  * Layout para todas las páginas del perfil de usuario
@@ -21,31 +15,31 @@ export default function ProfileLayout({ children }) {
 
   const navigationItems = [
     {
-      to: '/profile',
+      to: "/profile",
       icon: User,
-      label: 'Información Personal',
-      exact: true
+      label: "Información Personal",
+      exact: true,
     },
     {
-      to: '/profile/security',
+      to: "/profile/security",
       icon: Shield,
-      label: 'Seguridad'
+      label: "Seguridad",
     },
     {
-      to: '/orders',
+      to: "/orders",
       icon: ShoppingBag,
-      label: 'Mis Pedidos'
+      label: "Mis Pedidos",
     },
     {
-      to: '/addresses',
+      to: "/addresses",
       icon: MapPin,
-      label: 'Direcciones'
+      label: "Direcciones",
     },
     {
-      to: '/wishlist',
+      to: "/wishlist",
       icon: Heart,
-      label: 'Lista de Deseos'
-    }
+      label: "Lista de Deseos",
+    },
   ];
 
   const isActive = (item) => {
@@ -79,7 +73,7 @@ export default function ProfileLayout({ children }) {
                     <div className="w-20 h-20 sm:w-24 sm:h-24 bg-indigo-500 dark:bg-indigo-600 rounded-full flex items-center justify-center mx-auto ring-4 ring-indigo-50 dark:ring-indigo-900/30">
                       <User className="h-10 w-10 sm:h-12 sm:w-12 text-white" />
                     </div>
-                    <button 
+                    <button
                       className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-600 transition-colors shadow-md ring-2 ring-white dark:ring-gray-800"
                       title="Cambiar foto"
                     >
@@ -87,7 +81,7 @@ export default function ProfileLayout({ children }) {
                     </button>
                   </div>
                   <h3 className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg mb-1">
-                    {user?.name || 'Usuario'}
+                    {user?.name || "Usuario"}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate px-2">
                     {user?.email}
@@ -99,29 +93,37 @@ export default function ProfileLayout({ children }) {
                   {navigationItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item);
-                    
+
                     return (
                       <Link
                         key={item.to}
                         to={item.to}
                         className={`
                           group flex items-center w-full px-3 sm:px-4 py-2.5 sm:py-3 text-left rounded-lg font-medium transition-all duration-200
-                          ${active 
-                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 shadow-sm' 
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
+                          ${
+                            active
+                              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 shadow-sm"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
                           }
                         `}
                       >
-                        <div className={`
+                        <div
+                          className={`
                           flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg mr-3 flex-shrink-0 transition-colors
-                          ${active 
-                            ? 'bg-indigo-100 dark:bg-indigo-500/20' 
-                            : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
+                          ${
+                            active
+                              ? "bg-indigo-100 dark:bg-indigo-500/20"
+                              : "bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600"
                           }
-                        `}>
-                          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'}`} />
+                        `}
+                        >
+                          <Icon
+                            className={`h-4 w-4 sm:h-5 sm:w-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300"}`}
+                          />
                         </div>
-                        <span className="truncate text-sm sm:text-base">{item.label}</span>
+                        <span className="truncate text-sm sm:text-base">
+                          {item.label}
+                        </span>
                         {active && (
                           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></div>
                         )}
@@ -134,9 +136,7 @@ export default function ProfileLayout({ children }) {
           </div>
 
           {/* Main Content Area */}
-          <div className="lg:col-span-8 xl:col-span-9">
-            {children}
-          </div>
+          <div className="lg:col-span-8 xl:col-span-9">{children}</div>
         </div>
       </div>
     </div>

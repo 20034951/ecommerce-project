@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Truck,
   Ticket,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "../../utils/cn.js";
 import { useSidebar } from "../../contexts/SidebarContext.jsx";
@@ -72,10 +73,10 @@ const navigation = [
     description: "Control de acceso",
   },
   {
-    name: "Configuración",
-    href: "/admin/settings",
-    icon: Settings,
-    description: "Ajustes del sistema",
+    name: "Reportes",
+    href: "/admin/reports",
+    icon: BarChart3,
+    description: "Análisis de ventas",
   },
 ];
 

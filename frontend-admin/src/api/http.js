@@ -18,7 +18,7 @@ class HttpClient {
     this.accessTokenStorageKey = 'admin_access_token';
     this.isRefreshing = false;
     this.failedQueue = [];
-    
+
     // Intentar recuperar el token al inicializar
     this.initializeToken();
   }
@@ -42,7 +42,7 @@ class HttpClient {
    */
   setAccessToken(token) {
     this.accessToken = token;
-    
+
     // Persistir en sessionStorage para mantener en recarga de página
     try {
       if (token) {
@@ -67,7 +67,7 @@ class HttpClient {
    */
   clearAccessToken() {
     this.accessToken = null;
-    
+
     // Eliminar del sessionStorage
     try {
       sessionStorage.removeItem(this.accessTokenStorageKey);
@@ -128,7 +128,7 @@ class HttpClient {
         resolve(token);
       }
     });
-    
+
     this.failedQueue = [];
   }
 
@@ -157,12 +157,12 @@ class HttpClient {
 
       const data = await response.json();
       this.setAccessToken(data.accessToken);
-      
+
       // Si hay un nuevo refresh token, guardarlo también
       if (data.refreshToken) {
         this.setRefreshToken(data.refreshToken);
       }
-      
+
       return data.accessToken;
     } catch (error) {
       this.clearAccessToken();
@@ -186,8 +186,18 @@ class HttpClient {
       }
     }
 
-    const fullUrl = `${this.baseURL}${url}`;
-    
+    let fullUrl = `${this.baseURL}${url}`;
+
+    // Si hay params, convertirlos a query string
+    if (options.params) {
+      const queryString = new URLSearchParams(options.params).toString();
+      fullUrl = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}${queryString}`;
+      console.log('Full URL with params:', fullUrl);
+      // Eliminar params del objeto options para que no interfiera con fetch
+      const { params, ...restOptions } = options;
+      options = restOptions;
+    }
+
     // Preparar headers por defecto
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -239,7 +249,7 @@ class HttpClient {
       if (error instanceof HttpError) {
         throw error;
       }
-      
+
       // Error de red o parsing
       throw new HttpError(
         error.message || 'Network error',
@@ -268,11 +278,11 @@ class HttpClient {
     try {
       const newToken = await this.refreshAccessToken();
       this.processQueue(null, newToken);
-      
+
       // Reintentar la petición original
       config.headers['Authorization'] = `Bearer ${newToken}`;
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new HttpError(
