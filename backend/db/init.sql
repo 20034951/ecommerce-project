@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS user_address (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(100),
     country VARCHAR(100) NOT NULL,
+    postal_code VARCHAR(20),
     type ENUM('shipping','billing') DEFAULT 'shipping',
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
 );
@@ -49,6 +50,8 @@ CREATE TABLE IF NOT EXISTS category (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
+    emoji VARCHAR(10),
+    color VARCHAR(50),
     parent_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -64,6 +67,7 @@ CREATE TABLE IF NOT EXISTS product (
     price DECIMAL(10,2) NOT NULL,
     stock INT DEFAULT 0,
     sku VARCHAR(50) UNIQUE,
+    image_path VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES category(category_id) ON DELETE RESTRICT
@@ -104,6 +108,19 @@ CREATE TABLE IF NOT EXISTS shipping_method (
     region VARCHAR(100)
 );
 
+-- Métodos de pago
+CREATE TABLE IF NOT EXISTS payment_methods (
+    payment_method_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    icon VARCHAR(100),
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Notificaciones
 CREATE TABLE IF NOT EXISTS notification (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,7 +151,12 @@ CREATE TABLE IF NOT EXISTS coupon (
     type ENUM('percent','fixed') DEFAULT 'percent',
     valid_from DATE,
     valid_until DATE,
-    usage_limit INT
+    usage_limit INT,
+    used_count INT DEFAULT 0,
+    status ENUM('active','inactive','expired') DEFAULT 'active' NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Órdenes
@@ -152,11 +174,13 @@ CREATE TABLE IF NOT EXISTS orders (
     cancelled_at DATETIME,
     cancellation_reason TEXT,
     shipping_method_id INT,
+    payment_method_id INT,
     coupon_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE RESTRICT,
     FOREIGN KEY (address_id) REFERENCES user_address(address_id) ON DELETE RESTRICT,
     FOREIGN KEY (shipping_method_id) REFERENCES shipping_method(shipping_method_id) ON DELETE SET NULL,
+    FOREIGN KEY (payment_method_id) REFERENCES payment_methods(payment_method_id) ON DELETE SET NULL,
     FOREIGN KEY (coupon_id) REFERENCES coupon(coupon_id) ON DELETE SET NULL
 );
 

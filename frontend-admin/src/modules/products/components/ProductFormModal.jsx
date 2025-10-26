@@ -1,28 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Package, DollarSign, Hash, Barcode, FileText, Image as ImageIcon } from 'lucide-react';
-import { Input } from '../../../components/ui/Input.jsx';
-import { Label } from '../../../components/ui/Label.jsx';
-import { Textarea } from '../../../components/ui/Textarea.jsx';
-import { Select } from '../../../components/ui/Select.jsx';
-import { Button } from '../../../components/ui/Button.jsx';
-import { categoriesApi } from '../../../api/categories.js';
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  Save,
+  Package,
+  DollarSign,
+  Hash,
+  Barcode,
+  FileText,
+  Image as ImageIcon,
+  Tag as TagIcon,
+} from "lucide-react";
+import { Input } from "../../../components/ui/Input.jsx";
+import { Label } from "../../../components/ui/Label.jsx";
+import { Textarea } from "../../../components/ui/Textarea.jsx";
+import { Select } from "../../../components/ui/Select.jsx";
+import { Button } from "../../../components/ui/Button.jsx";
+import { TagInput } from "../../../components/ui/TagInput.jsx";
+import { categoriesApi } from "../../../api/categories.js";
 
-export default function ProductFormModal({ 
-  isOpen, 
-  onClose, 
-  onSave, 
+export default function ProductFormModal({
+  isOpen,
+  onClose,
+  onSave,
   product = null,
-  isLoading = false
+  isLoading = false,
 }) {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
-    sku: '',
-    category_id: '',
-    image_path: ''
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    sku: "",
+    category_id: "",
+    image_path: "",
+    tags: [],
   });
   const [errors, setErrors] = useState({});
 
@@ -33,23 +45,25 @@ export default function ProductFormModal({
   useEffect(() => {
     if (product) {
       setFormData({
-        name: product.name || '',
-        description: product.description || '',
-        price: product.price || '',
-        stock: product.stock || '',
-        sku: product.sku || '',
-        category_id: product.category_id || '',
-        image_path: product.image_path || ''
+        name: product.name || "",
+        description: product.description || "",
+        price: product.price || "",
+        stock: product.stock || "",
+        sku: product.sku || "",
+        category_id: product.category_id || "",
+        image_path: product.image_path || "",
+        tags: product.tags ? product.tags.map((t) => t.tag) : [],
       });
     } else {
       setFormData({
-        name: '',
-        description: '',
-        price: '',
-        stock: '',
-        sku: '',
-        category_id: '',
-        image_path: ''
+        name: "",
+        description: "",
+        price: "",
+        stock: "",
+        sku: "",
+        category_id: "",
+        image_path: "",
+        tags: [],
       });
     }
     setErrors({});
@@ -60,36 +74,40 @@ export default function ProductFormModal({
       const response = await categoriesApi.getAll();
       setCategories(response.data || response || []);
     } catch (error) {
-      console.error('Error cargando categorías:', error);
+      console.error("Error cargando categorías:", error);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Limpiar error del campo
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
+  };
+
+  const handleTagsChange = (newTags) => {
+    setFormData((prev) => ({ ...prev, tags: newTags }));
   };
 
   const validate = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido';
+      newErrors.name = "El nombre es requerido";
     }
 
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      newErrors.price = 'El precio debe ser mayor a 0';
+      newErrors.price = "El precio debe ser mayor a 0";
     }
 
     if (!formData.stock || parseInt(formData.stock) < 0) {
-      newErrors.stock = 'El stock debe ser mayor o igual a 0';
+      newErrors.stock = "El stock debe ser mayor o igual a 0";
     }
 
     if (!formData.category_id) {
-      newErrors.category_id = 'Selecciona una categoría';
+      newErrors.category_id = "Selecciona una categoría";
     }
 
     setErrors(newErrors);
@@ -98,7 +116,7 @@ export default function ProductFormModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
@@ -107,7 +125,7 @@ export default function ProductFormModal({
       ...formData,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
-      category_id: parseInt(formData.category_id)
+      category_id: parseInt(formData.category_id),
     };
 
     onSave(dataToSave);
@@ -118,7 +136,7 @@ export default function ProductFormModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
@@ -134,10 +152,12 @@ export default function ProductFormModal({
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {product ? 'Editar Producto' : 'Nuevo Producto'}
+                  {product ? "Editar Producto" : "Nuevo Producto"}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {product ? 'Actualiza la información del producto' : 'Completa los datos del nuevo producto'}
+                  {product
+                    ? "Actualiza la información del producto"
+                    : "Completa los datos del nuevo producto"}
                 </p>
               </div>
             </div>
@@ -203,7 +223,10 @@ export default function ProductFormModal({
                   >
                     <option value="">Selecciona una categoría</option>
                     {categories.map((category) => (
-                      <option key={category.category_id} value={category.category_id}>
+                      <option
+                        key={category.category_id}
+                        value={category.category_id}
+                      >
                         {category.name}
                       </option>
                     ))}
@@ -285,16 +308,31 @@ export default function ProductFormModal({
                 />
                 {formData.image_path && (
                   <div className="mt-2">
-                    <img 
-                      src={formData.image_path} 
-                      alt="Preview" 
+                    <img
+                      src={formData.image_path}
+                      alt="Preview"
                       className="h-32 w-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                       onError={(e) => {
-                        e.target.style.display = 'none';
+                        e.target.style.display = "none";
                       }}
                     />
                   </div>
                 )}
+              </div>
+
+              {/* Tags */}
+              <div>
+                <Label htmlFor="tags">
+                  <TagIcon className="h-4 w-4 mr-1 inline" />
+                  Etiquetas (Tags)
+                </Label>
+                <TagInput
+                  tags={formData.tags}
+                  onChange={handleTagsChange}
+                  placeholder="Ej: nuevo, oferta, destacado..."
+                  maxLength={50}
+                  disabled={isLoading}
+                />
               </div>
             </div>
 
@@ -314,7 +352,7 @@ export default function ProductFormModal({
                 className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isLoading ? 'Guardando...' : 'Guardar Producto'}
+                {isLoading ? "Guardando..." : "Guardar Producto"}
               </Button>
             </div>
           </form>

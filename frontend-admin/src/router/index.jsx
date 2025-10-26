@@ -14,6 +14,8 @@ const Dashboard = lazy(
   () => import("../modules/dashboard/pages/DashboardPage.jsx")
 );
 
+const Reports = lazy(() => import("../modules/reports/pages/ReportsPage.jsx"));
+
 // Helper functions to create route elements
 const createAdminRoute = (Component) => (
   <AdminRoute>
@@ -163,6 +165,11 @@ export const router = createBrowserRouter([
       {
         path: "dashboard",
         element: createAdminRoute(Dashboard),
+      },
+      // Reports
+      {
+        path: "reports",
+        element: createAdminRoute(Reports),
       },
       // Users management
       {

@@ -67,7 +67,7 @@ class CouponService {
     });
 
     if (!coupon) {
-      throw new HttpError(404, "Coupon not found");
+      throw new HttpError(404, "Cupón no encontrado");
     }
 
     return coupon;
@@ -82,7 +82,7 @@ class CouponService {
     });
 
     if (!coupon) {
-      throw new HttpError(404, "Coupon not found");
+      throw new HttpError(404, "Cupón no encontrado");
     }
 
     return coupon;
@@ -105,16 +105,16 @@ class CouponService {
 
     // Validate required fields
     if (!code || !discount) {
-      throw new HttpError(400, "Code and discount are required");
+      throw new HttpError(400, "El código y el descuento son obligatorios");
     }
 
     // Validate discount value
     if (type === "percent" && (discount < 0 || discount > 100)) {
-      throw new HttpError(400, "Percentage discount must be between 0 and 100");
+      throw new HttpError(400, "El descuento porcentual debe estar entre 0 y 100");
     }
 
     if (type === "fixed" && discount < 0) {
-      throw new HttpError(400, "Fixed discount must be positive");
+      throw new HttpError(400, "El descuento fijo debe ser positivo");
     }
 
     // Check if coupon code already exists
@@ -122,7 +122,7 @@ class CouponService {
       where: { code: code.toUpperCase() },
     });
     if (existing) {
-      throw new HttpError(400, "Coupon code already exists");
+      throw new HttpError(400, "El código de cupón ya existe");
     }
 
     // Validate dates
@@ -133,7 +133,7 @@ class CouponService {
     ) {
       throw new HttpError(
         400,
-        "Valid from date must be before valid until date"
+        "La fecha de inicio debe ser anterior a la fecha de finalización"
       );
     }
 
@@ -159,7 +159,7 @@ class CouponService {
     const coupon = await Coupon.findByPk(couponId);
 
     if (!coupon) {
-      throw new HttpError(404, "Coupon not found");
+      throw new HttpError(404, "Cupón no encontrado");
     }
 
     const {
@@ -179,7 +179,7 @@ class CouponService {
         where: { code: code.toUpperCase() },
       });
       if (existing) {
-        throw new HttpError(400, "Coupon code already exists");
+        throw new HttpError(400, "El código de cupón ya existe");
       }
     }
 
@@ -189,11 +189,11 @@ class CouponService {
       if (discountType === "percent" && (discount < 0 || discount > 100)) {
         throw new HttpError(
           400,
-          "Percentage discount must be between 0 and 100"
+          "El descuento porcentual debe estar entre 0 y 100"
         );
       }
       if (discountType === "fixed" && discount < 0) {
-        throw new HttpError(400, "Fixed discount must be positive");
+        throw new HttpError(400, "El descuento fijo debe ser positivo");
       }
     }
 
@@ -207,7 +207,7 @@ class CouponService {
     ) {
       throw new HttpError(
         400,
-        "Valid from date must be before valid until date"
+        "La fecha de inicio debe ser anterior a la fecha de finalización"
       );
     }
 
@@ -232,19 +232,19 @@ class CouponService {
     const coupon = await Coupon.findByPk(couponId);
 
     if (!coupon) {
-      throw new HttpError(404, "Coupon not found");
+      throw new HttpError(404, "Cupón no encontrado");
     }
 
     // Check if coupon has been used
     if (coupon.used_count > 0) {
       throw new HttpError(
         400,
-        "Cannot delete a coupon that has been used. Consider deactivating it instead."
+        "No se puede eliminar un cupón que ha sido usado. Considera desactivarlo en su lugar."
       );
     }
 
     await coupon.destroy();
-    return { message: "Coupon deleted successfully" };
+    return { message: "Cupón eliminado exitosamente" };
   }
 
   /**
@@ -255,7 +255,7 @@ class CouponService {
 
     // Check if coupon is active
     if (coupon.status !== "active") {
-      throw new HttpError(400, "This coupon is not active");
+      throw new HttpError(400, "Este cupón no está activo");
     }
 
     // Check date validity
@@ -265,14 +265,14 @@ class CouponService {
     if (coupon.valid_from) {
       const validFrom = new Date(coupon.valid_from);
       if (today < validFrom) {
-        throw new HttpError(400, "This coupon is not yet valid");
+        throw new HttpError(400, "Este cupón aún no es válido");
       }
     }
 
     if (coupon.valid_until) {
       const validUntil = new Date(coupon.valid_until);
       if (today > validUntil) {
-        throw new HttpError(400, "This coupon has expired");
+        throw new HttpError(400, "Este cupón ha expirado");
       }
     }
 
@@ -281,7 +281,7 @@ class CouponService {
       coupon.usage_limit !== null &&
       coupon.used_count >= coupon.usage_limit
     ) {
-      throw new HttpError(400, "This coupon has reached its usage limit");
+      throw new HttpError(400, "Este cupón ha alcanzado su límite de uso");
     }
 
     // Calculate discount
@@ -310,7 +310,7 @@ class CouponService {
     const coupon = await Coupon.findByPk(couponId);
 
     if (!coupon) {
-      throw new HttpError(404, "Coupon not found");
+      throw new HttpError(404, "Cupón no encontrado");
     }
 
     await coupon.increment("used_count");

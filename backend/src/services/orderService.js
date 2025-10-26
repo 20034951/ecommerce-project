@@ -30,6 +30,7 @@ class OrderService {
         couponId,
         totalAmount,
         couponCode,
+        paymentMethodId,
       } = orderData;
 
       // Verificar que la dirección pertenezca al usuario
@@ -44,17 +45,35 @@ class OrderService {
         );
       }
 
-      let finalCouponId = couponId;
-      let finalTotalAmount = totalAmount;
+      // Calcular subtotal de productos
+      const productsSubtotal = items.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) * item.quantity);
+      }, 0);
 
-      // Si se proporciona un código de cupón, validarlo y aplicarlo
+      // Obtener costo de envío
+      let shippingCost = 0;
+      if (shippingMethodId) {
+        const shippingMethod = await ShippingMethod.findByPk(shippingMethodId);
+        if (shippingMethod) {
+          shippingCost = parseFloat(shippingMethod.cost);
+        }
+      }
+
+      let finalCouponId = couponId;
+      let discountAmount = 0;
+      let finalTotalAmount = productsSubtotal + shippingCost;
+
+      // Si se proporciona un código de cupón, validarlo y aplicarlo sobre el subtotal de productos
       if (couponCode) {
         const couponValidation = await couponService.validateCoupon(
           couponCode,
-          totalAmount
+          productsSubtotal // Aplicar descuento solo sobre productos, no sobre envío
         );
         finalCouponId = couponValidation.coupon.coupon_id;
-        finalTotalAmount = couponValidation.finalTotal;
+        discountAmount = couponValidation.discountAmount;
+
+        // Total = Subtotal productos + Envío - Descuento
+        finalTotalAmount = productsSubtotal + shippingCost - discountAmount;
       }
 
       // Si se proporciona couponId directamente, también incrementar su uso
@@ -70,6 +89,7 @@ class OrderService {
           address_id: addressId,
           shipping_method_id: shippingMethodId,
           coupon_id: finalCouponId,
+          payment_method_id: paymentMethodId,
           total_amount: finalTotalAmount,
           status: "pending",
         },
@@ -150,6 +170,10 @@ class OrderService {
           as: "coupon",
         },
         {
+          model: db.PaymentMethod,
+          as: "paymentMethod",
+        },
+        {
           model: OrderItem,
           as: "items",
           include: [
@@ -179,7 +203,25 @@ class OrderService {
       throw new HttpError(404, "Pedido no encontrado");
     }
 
-    return order;
+    // Calcular el descuento aplicado si hay un cupón
+    const orderJson = order.toJSON();
+    if (orderJson.coupon) {
+      const subtotal = orderJson.items.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) * item.quantity);
+      }, 0);
+
+      let discountAmount = 0;
+      if (orderJson.coupon.type === 'percent') {
+        discountAmount = (subtotal * orderJson.coupon.discount) / 100;
+      } else if (orderJson.coupon.type === 'fixed') {
+        discountAmount = parseFloat(orderJson.coupon.discount);
+      }
+
+      // Agregar el monto del descuento al objeto del cupón
+      orderJson.coupon.discount_amount = parseFloat(discountAmount.toFixed(2));
+    }
+
+    return orderJson;
   }
 
   /**
@@ -219,6 +261,14 @@ class OrderService {
           model: ShippingMethod,
           as: "shippingMethod",
         },
+        {
+          model: Coupon,
+          as: "coupon",
+        },
+        {
+          model: db.PaymentMethod,
+          as: "paymentMethod",
+        },
       ],
       distinct: true, // Contar solo órdenes únicas, no los items relacionados
       order: [["created_at", "DESC"]],
@@ -226,8 +276,30 @@ class OrderService {
       offset: parseInt(offset),
     });
 
+    // Calcular el descuento para cada pedido que tenga cupón
+    const ordersWithDiscount = orders.map(order => {
+      const orderJson = order.toJSON();
+
+      if (orderJson.coupon && orderJson.items) {
+        const subtotal = orderJson.items.reduce((sum, item) => {
+          return sum + (parseFloat(item.price) * item.quantity);
+        }, 0);
+
+        let discountAmount = 0;
+        if (orderJson.coupon.type === 'percent') {
+          discountAmount = (subtotal * orderJson.coupon.discount) / 100;
+        } else if (orderJson.coupon.type === 'fixed') {
+          discountAmount = parseFloat(orderJson.coupon.discount);
+        }
+
+        orderJson.coupon.discount_amount = parseFloat(discountAmount.toFixed(2));
+      }
+
+      return orderJson;
+    });
+
     return {
-      orders,
+      orders: ordersWithDiscount,
       pagination: {
         total: count,
         page: parseInt(page),
@@ -306,6 +378,14 @@ class OrderService {
             },
           ],
         },
+        {
+          model: Coupon,
+          as: "coupon",
+        },
+        {
+          model: db.PaymentMethod,
+          as: "paymentMethod",
+        },
       ],
       distinct: true, // Contar solo órdenes únicas, no los items relacionados
       order: [["created_at", "DESC"]],
@@ -313,8 +393,30 @@ class OrderService {
       offset: parseInt(offset),
     });
 
+    // Calcular el descuento para cada pedido que tenga cupón
+    const ordersWithDiscount = orders.map(order => {
+      const orderJson = order.toJSON();
+
+      if (orderJson.coupon && orderJson.items) {
+        const subtotal = orderJson.items.reduce((sum, item) => {
+          return sum + (parseFloat(item.price) * item.quantity);
+        }, 0);
+
+        let discountAmount = 0;
+        if (orderJson.coupon.type === 'percent') {
+          discountAmount = (subtotal * orderJson.coupon.discount) / 100;
+        } else if (orderJson.coupon.type === 'fixed') {
+          discountAmount = parseFloat(orderJson.coupon.discount);
+        }
+
+        orderJson.coupon.discount_amount = parseFloat(discountAmount.toFixed(2));
+      }
+
+      return orderJson;
+    });
+
     return {
-      orders,
+      orders: ordersWithDiscount,
       pagination: {
         total: count,
         page: parseInt(page),
@@ -559,6 +661,10 @@ class OrderService {
               attributes: ["product_id", "name", "sku"],
             },
           ],
+        },
+        {
+          model: db.PaymentMethod,
+          as: "paymentMethod",
         },
       ],
       order: [["created_at", "DESC"]],

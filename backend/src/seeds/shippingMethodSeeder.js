@@ -13,18 +13,18 @@ export const seedShippingMethods = async () => {
 
     const methodsData = [
         {
-            name: 'Envío Estándar',
-            cost: 5.99,
+            name: 'Municipio de Guatemala',
+            cost: 15.00,
             region: 'Nacional'
         },
         {
-            name: 'Envío Express',
-            cost: 12.99,
+            name: 'Carretera al Salvador',
+            cost: 25.00,
             region: 'Nacional'
         },
         {
-            name: 'Envío Premium',
-            cost: 24.99,
+            name: 'Envío en menos de 2 horas',
+            cost: 25.00,
             region: 'Nacional'
         },
         {
@@ -47,9 +47,9 @@ export const seedShippingMethods = async () => {
             where: { name: methodData.name },
             defaults: methodData
         });
-        
+
         shippingMethods.push(method);
-        
+
         if (wasCreated) {
             created++;
         } else {
