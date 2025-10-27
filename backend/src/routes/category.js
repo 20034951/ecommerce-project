@@ -6,25 +6,31 @@ import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 
 const router = express.Router();
 const { Category, Product } = db;
-const CACHE_TTL = 120;
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 // Get all categories
 router.get('/',
     cacheMiddleware('categories:all', CACHE_TTL),
     asyncHandler(async (req, res) => {
         const categories = await Category.findAll({
-            attributes: {
-                include: [
-                    [
-                        db.sequelize.literal(`(
-                            SELECT COUNT(*)
-                            FROM product
-                            WHERE product.category_id = Category.category_id
-                        )`),
-                        'productCount'
-                    ]
+            attributes: [
+                'category_id',
+                'name',
+                'description',
+                'emoji',
+                'color',
+                'parent_id',
+                'created_at',
+                'updated_at',
+                [
+                    db.sequelize.literal(`(
+                        SELECT COUNT(*)
+                        FROM product
+                        WHERE product.category_id = Category.category_id
+                    )`),
+                    'productCount'
                 ]
-            }
+            ]
         });
         res.json(categories);
     })
@@ -55,8 +61,14 @@ router.get('/:id',
 // Create category
 router.post('/',
     asyncHandler(async (req, res) => {
-        const { name, description } = req.body;
-        const newCategory = await Category.create({ name, description });
+        const { name, description, emoji, color, parent_id } = req.body;
+        const newCategory = await Category.create({
+            name,
+            description,
+            emoji,
+            color,
+            parent_id
+        });
 
         await invalidateCache(['categories:all', 'categories:with-products']);
 
@@ -72,7 +84,7 @@ router.put('/:id',
             throw new HttpError(404, 'Category not found');
         }
 
-        const { name, description } = req.body;
+        const { name, description, emoji, color, parent_id } = req.body;
 
         // Validation example
         if (name !== undefined && name.trim() === '') {
@@ -81,6 +93,9 @@ router.put('/:id',
 
         category.name = name ?? category.name;
         category.description = description ?? category.description;
+        category.emoji = emoji ?? category.emoji;
+        category.color = color ?? category.color;
+        category.parent_id = parent_id !== undefined ? parent_id : category.parent_id;
         await category.save();
 
         await invalidateCache([`category:${req.params.id}`, 'categories:all', 'categories:with-products']);

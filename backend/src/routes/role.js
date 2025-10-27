@@ -11,7 +11,7 @@ const { Role } = db;
 // Cache Keys
 const CACHE_KEY_ALL = 'roles:all';
 const CACHE_KEY_BY_ID = (id) => `roles:${id}`;
-const CACHE_TTL = 300;
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 /**
  * @route GET /api/roles
@@ -35,7 +35,7 @@ router.get('/:id',
     cacheMiddleware((req) => CACHE_KEY_BY_ID(req.params.id), CACHE_TTL),
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
-        if(!role){
+        if (!role) {
             throw new HttpError(404, 'Role not found');
         }
         res.status(200).json(role);
@@ -52,17 +52,17 @@ router.post('/',
     asyncHandler(async (req, res) => {
         const { name, description } = req.body;
 
-        if(!name){
+        if (!name) {
             throw new HttpError(400, 'Role name is required');
         }
 
-        const existing = await Role.findOne( { where: {name} } );
+        const existing = await Role.findOne({ where: { name } });
 
-        if(existing) {
+        if (existing) {
             throw new HttpError(400, 'Role name already exists');
         }
 
-        const role = await Role.create( { name, description } );
+        const role = await Role.create({ name, description });
 
         await invalidateCache([CACHE_KEY_ALL]);
 
@@ -81,12 +81,12 @@ router.put('/:id',
         const { name, description } = req.body;
         const role = await Role.findByPk(req.params.id);
 
-        if(!role){
+        if (!role) {
             throw new HttpError(400, 'Role not found');
         }
 
-        if(name) role.name = name;
-        if(description) role.description = description;
+        if (name) role.name = name;
+        if (description) role.description = description;
 
         await role.save();
 
@@ -102,7 +102,7 @@ router.delete('/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const role = await Role.findByPk(req.params.id);
-        if(!role){
+        if (!role) {
             throw new HttpError(404, 'Role not found');
         }
 
