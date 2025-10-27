@@ -140,6 +140,21 @@ export default function CatalogPage() {
     fetchProducts(page, limit, selectedCategories, searchQuery);
   }, [page, limit, sortBy, sortOrder, selectedCategories, searchQuery]);
 
+
+  //Actualizar lista de productos despues de checkout
+  const onCheckoutSuccess = () => {
+    fetchProducts(page, limit);
+  };
+
+  //Mostrar Stock disponible
+  products.map(product => (
+    <div key={product.product_id}>
+      <p>Stock disponible: {product.stock_quantity}</p>
+    </div>
+  ));
+
+
+
   const handleLimitChange = (e) => {
     const newLimit = parseInt(e.target.value);
     setLimit(newLimit);
