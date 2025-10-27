@@ -35,11 +35,6 @@ export default function ProfileLayout({ children }) {
       icon: MapPin,
       label: "Direcciones",
     },
-    {
-      to: "/wishlist",
-      icon: Heart,
-      label: "Lista de Deseos",
-    },
   ];
 
   const isActive = (item) => {

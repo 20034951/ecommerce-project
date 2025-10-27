@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./auth/AuthProvider.jsx";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { ThemeController } from "./components/theme/ThemeController.jsx";
@@ -67,6 +68,39 @@ function App() {
               <RouterProvider router={router} />
             </Suspense>
           </AuthProvider>
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+            gutter={8}
+            toastOptions={{
+              // Estilos por defecto
+              duration: 4000,
+              style: {
+                background: "#363636",
+                color: "#fff",
+                borderRadius: "10px",
+                padding: "16px",
+              },
+              // Estilos específicos por tipo
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: "#10b981",
+                  secondary: "#fff",
+                },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: "#ef4444",
+                  secondary: "#fff",
+                },
+              },
+              loading: {
+                duration: Infinity,
+              },
+            }}
+          />
         </ThemeProvider>
         {/* {process.env.NODE_ENV === "development" && <ReactQueryDevtools />} */}
       </QueryClientProvider>

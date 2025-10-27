@@ -3,7 +3,7 @@ import { getRedisClient } from "../utils/redisClient.js";
 /**
  * 
  * @param {string|function} cacheKeyPrefix - Key or Prefix of cache
- * @param {number} ttlSeconds - Cache time to live (in seconds)
+ * @param {number|object} ttlSeconds - Cache time to live (in seconds) or object with {admin, store}
  * @returns 
  */
 export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
@@ -11,7 +11,7 @@ export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
 
         let redisClient;
 
-        try{
+        try {
             redisClient = getRedisClient();
         } catch (err) {
             console.warn('Redis Client not initialized - proceeding without cache');
@@ -20,20 +20,34 @@ export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
 
         try {
             const cacheKey = typeof cacheKeyOrFunction === 'function' ? cacheKeyOrFunction(req) : cacheKeyOrFunction;
+
+            // Determinar TTL según el rol del usuario
+            let effectiveTTL = ttlSeconds;
+
+            // Si ttlSeconds es un objeto con configuración admin/store
+            if (typeof ttlSeconds === 'object' && ttlSeconds !== null) {
+                const isAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'editor');
+                effectiveTTL = isAdmin ? (ttlSeconds.admin || 5) : (ttlSeconds.store || 30);
+            } else if (typeof ttlSeconds === 'number') {
+                // Si es un número simple, verificar si es admin para ajustar
+                const isAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'editor');
+                effectiveTTL = isAdmin ? 5 : ttlSeconds;
+            }
+
             const cached = await redisClient.get(cacheKey);
 
-            if(cached){
-                console.log(`Cache hit: ${cacheKey}`);
+            if (cached) {
+                console.log(`Cache hit: ${cacheKey} (TTL: ${effectiveTTL}s, Role: ${req.user?.role || 'guest'})`);
                 return res.status(200).json(JSON.parse(cached));
             }
 
             //Getting real response
             const originalJson = res.json.bind(res);
-            
-            res.json = async(data) => {
-                try{
-                    await redisClient.setEx(cacheKey, ttlSeconds, JSON.stringify(data));
-                    console.log(`Cache set: ${cacheKey}`);
+
+            res.json = async (data) => {
+                try {
+                    await redisClient.setEx(cacheKey, effectiveTTL, JSON.stringify(data));
+                    console.log(`Cache set: ${cacheKey} (TTL: ${effectiveTTL}s, Role: ${req.user?.role || 'guest'})`);
                 } catch (err) {
                     console.error('Error setting cache: ', err.message);
                 }
@@ -55,7 +69,7 @@ export const cacheMiddleware = (cacheKeyOrFunction, ttlSeconds = 60) => {
 export const invalidateCache = async (keys = []) => {
     try {
         const redisClient = getRedisClient();
-        if(keys.length > 0) {
+        if (keys.length > 0) {
             await redisClient.del(keys);
             console.log(`Cache invalidated for keys: ${keys.join(', ')}`);
         }
@@ -78,5 +92,5 @@ export async function invalidateCacheByPrefix(prefix) {
         }
     } catch (err) {
         console.error('Error invalidating cache: ', err);
-    }    
+    }
 }

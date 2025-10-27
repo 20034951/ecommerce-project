@@ -70,7 +70,7 @@ class ProductService {
             {
                 model: Category,
                 as: 'category',
-                attributes: ['category_id', 'name']
+                attributes: ['category_id', 'name', 'emoji', 'color']
             },
             {
                 model: ProductTag,
@@ -109,7 +109,7 @@ class ProductService {
                 {
                     model: Category,
                     as: 'category',
-                    attributes: ['category_id', 'name']
+                    attributes: ['category_id', 'name', 'emoji', 'color']
                 },
                 {
                     model: ProductTag,
@@ -150,7 +150,7 @@ class ProductService {
         // Recargar producto con tags
         return await Product.findByPk(product.product_id, {
             include: [
-                { model: Category, as: 'category', attributes: ['category_id', 'name'] },
+                { model: Category, as: 'category', attributes: ['category_id', 'name', 'emoji', 'color'] },
                 { model: ProductTag, as: 'tags', attributes: ['tag_id', 'tag'] }
             ]
         });
@@ -195,7 +195,7 @@ class ProductService {
         // Recargar producto con tags
         return await Product.findByPk(id, {
             include: [
-                { model: Category, as: 'category', attributes: ['category_id', 'name'] },
+                { model: Category, as: 'category', attributes: ['category_id', 'name', 'emoji', 'color'] },
                 { model: ProductTag, as: 'tags', attributes: ['tag_id', 'tag'] }
             ]
         });

@@ -1,8 +1,10 @@
 import express from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { cacheMiddleware } from '../middleware/cache.js';
 import homeService from '../services/homeService.js';
 
 const router = express.Router();
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 /**
  * @route   GET /api/home
@@ -11,6 +13,7 @@ const router = express.Router();
  */
 router.get(
     '/',
+    cacheMiddleware('home:data', CACHE_TTL),
     asyncHandler(async (req, res) => {
         const data = await homeService.getHomeData();
         res.json(data);
@@ -24,6 +27,7 @@ router.get(
  */
 router.get(
     '/categories',
+    cacheMiddleware('home:categories', CACHE_TTL),
     asyncHandler(async (req, res) => {
         const categories = await homeService.getAllCategories();
         res.json(categories);
@@ -37,6 +41,7 @@ router.get(
  */
 router.get(
     '/featured-products',
+    cacheMiddleware((req) => `home:featured:${req.query.limit || 10}`, CACHE_TTL),
     asyncHandler(async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const products = await homeService.getFeaturedProducts(limit);
@@ -51,6 +56,7 @@ router.get(
  */
 router.get(
     '/category-products',
+    cacheMiddleware((req) => `home:category-products:${req.query.limit || 10}`, CACHE_TTL),
     asyncHandler(async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const data = await homeService.getRandomCategoriesWithProducts(limit);

@@ -249,9 +249,28 @@ export default function ProductDetailPage() {
           <div className="flex flex-col gap-6">
             {/* Categoría */}
             {product.category?.name && (
-              <div className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 w-fit">
-                <Tag className="h-4 w-4" />
-                <span className="font-medium">{product.category.name}</span>
+              <div
+                className="inline-flex items-center gap-2 text-sm font-medium w-fit px-4 py-2 rounded-lg transition-all duration-200"
+                style={{
+                  backgroundColor: product.category.color
+                    ? `${product.category.color}15`
+                    : "#6366f115",
+                  color: product.category.color || "#6366f1",
+                  border: `1.5px solid ${product.category.color ? `${product.category.color}30` : "#6366f130"}`,
+                }}
+              >
+                {product.category.emoji ? (
+                  <span
+                    className="text-lg"
+                    role="img"
+                    aria-label={product.category.name}
+                  >
+                    {product.category.emoji}
+                  </span>
+                ) : (
+                  <Tag className="h-4 w-4" />
+                )}
+                <span>{product.category.name}</span>
               </div>
             )}
 
@@ -270,7 +289,12 @@ export default function ProductDetailPage() {
 
             {/* Precio */}
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">
+              <span
+                className="text-4xl font-bold"
+                style={{
+                  color: product.category?.color || "#6366f1",
+                }}
+              >
                 {formatPrice(product.price)}
               </span>
             </div>
@@ -365,7 +389,12 @@ export default function ProductDetailPage() {
                 <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
                   Subtotal:
                 </span>
-                <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                <span
+                  className="text-2xl font-bold"
+                  style={{
+                    color: product.category?.color || "#6366f1",
+                  }}
+                >
                   {formatPrice(product.price * quantity)}
                 </span>
               </div>
@@ -374,7 +403,21 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-indigo-500/20"
+                className="w-full flex items-center justify-center gap-3 text-white px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
+                style={{
+                  backgroundColor: product.category?.color || "#6366f1",
+                  boxShadow: `0 10px 25px -5px ${product.category?.color || "#6366f1"}40`,
+                }}
+                onMouseEnter={(e) => {
+                  if (product.stock !== 0) {
+                    const color = product.category?.color || "#6366f1";
+                    // Oscurecer el color en hover
+                    e.currentTarget.style.filter = "brightness(0.9)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.filter = "brightness(1)";
+                }}
               >
                 <ShoppingCart className="h-6 w-6" />
                 <span>{product.stock === 0 ? "Sin stock" : ADD_TO_CART}</span>
@@ -387,7 +430,12 @@ export default function ProductDetailPage() {
         {related.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center gap-3 mb-6">
-              <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              <TrendingUp
+                className="h-6 w-6"
+                style={{
+                  color: product.category?.color || "#6366f1",
+                }}
+              />
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {RELATED}
               </h2>
