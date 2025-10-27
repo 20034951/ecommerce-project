@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import db from "../models/index.js";
 import HttpError from "../utils/HttpError.js";
 import emailService from "./emailService.js";
 import { Op } from "sequelize";
 import couponService from "./couponService.js";
+=======
+import db from '../models/index.js';
+import HttpError from '../utils/HttpError.js';
+import emailService from './emailService.js';
+import { Op } from 'sequelize';
+import stockService from './stockService.js';
+>>>>>>> c439414 (actualizacion Stock)
 
 const {
   Order,
@@ -33,10 +41,17 @@ class OrderService {
         paymentMethodId,
       } = orderData;
 
+<<<<<<< HEAD
       // Verificar que la dirección pertenezca al usuario
       const address = await UserAddress.findOne({
         where: { address_id: addressId, user_id: userId },
       });
+=======
+            // Verificar que la dirección pertenezca al usuario
+            const address = await UserAddress.findOne({
+                where: { address_id: addressId, user_id: userId }, transaction
+            });
+>>>>>>> c439414 (actualizacion Stock)
 
       if (!address) {
         throw new HttpError(
@@ -45,10 +60,29 @@ class OrderService {
         );
       }
 
+<<<<<<< HEAD
       // Calcular subtotal de productos
       const productsSubtotal = items.reduce((sum, item) => {
         return sum + (parseFloat(item.price) * item.quantity);
       }, 0);
+=======
+            // Reservar stock (lock + decrement) antes de crear la orden
+            const stockItems = items.map(item => ({
+                product_id: item.productId,
+                quantity: item.quantity
+            }));
+            await stockService.reserveStock(stockItems, transaction);
+
+            // Crear la orden
+            const order = await Order.create({
+                user_id: userId,
+                address_id: addressId,
+                shipping_method_id: shippingMethodId,
+                coupon_id: couponId,
+                total_amount: totalAmount,
+                status: 'pending'
+            }, { transaction });
+>>>>>>> c439414 (actualizacion Stock)
 
       // Obtener costo de envío
       let shippingCost = 0;
@@ -238,9 +272,84 @@ class OrderService {
       whereClause.status = status;
     }
 
+<<<<<<< HEAD
     // Búsqueda por número de tracking
     if (search) {
       whereClause.tracking_number = { [Op.like]: `%${search}%` };
+=======
+    /**
+     * Actualizar el estado de un pedido
+     */
+    async updateOrderStatus(orderId, statusData, userId) {
+        const transaction = await db.sequelize.transaction();
+
+        try {
+            const { status, notes, trackingNumber, trackingUrl, estimatedDelivery } = statusData;
+
+            const order = await Order.findByPk(orderId, { transaction });
+
+            if (!order) {
+                throw new HttpError(404, 'Pedido no encontrado');
+            }
+
+            // Validar transición de estado
+            this._validateStatusTransition(order.status, status);
+
+            const previousStatus = order.status;
+            const updateData = { status };
+
+            // Actualizar campos según el nuevo estado
+            if (status === 'shipped') {
+                updateData.shipped_at = new Date();
+                if (trackingNumber) updateData.tracking_number = trackingNumber;
+                if (trackingUrl) updateData.tracking_url = trackingUrl;
+                if (estimatedDelivery) updateData.estimated_delivery = estimatedDelivery;
+            } else if (status === 'delivered') {
+                updateData.delivered_at = new Date();
+            } else if (status === 'cancelled') {
+                updateData.cancelled_at = new Date();
+                if (notes) updateData.cancellation_reason = notes;
+            }
+
+            await order.update(updateData, { transaction });
+
+            // Si cambiamos a cancelled --> liberar stock
+            if (status === 'cancelled' && previousStatus !== 'cancelled') {
+                const items = await OrderItem.findAll({  where: { order_id: orderId }, transaction });
+                const releaseItems = items.map(item => ({  product_id: item.product_id, quantity: item.quantity}));
+                const orderItems = await OrderItem.findAll({  where: { order_id: orderId }, transaction
+                });
+                await stockService.releaseStock(releaseItems, transaction);};
+
+            // Crear registro en el historial
+            await OrderStatusHistory.create({
+                order_id: orderId,
+                status,
+                notes: notes || `Estado cambiado a ${status}`,
+                changed_by: userId
+            }, { transaction });
+
+            await transaction.commit();
+
+            const updatedOrder = await this.getOrderById(orderId, null, true);
+            
+            // Enviar email según el nuevo estado (sin bloquear)
+            if (status === 'shipped') {
+                emailService.sendOrderShipped(updatedOrder).catch(err => 
+                    console.error('Error enviando email de envío:', err)
+                );
+            } else if (status === 'delivered') {
+                emailService.sendOrderDelivered(updatedOrder).catch(err => 
+                    console.error('Error enviando email de entrega:', err)
+                );
+            }
+            
+            return updatedOrder;
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
+>>>>>>> c439414 (actualizacion Stock)
     }
 
     const { rows: orders, count } = await Order.findAndCountAll({
@@ -285,11 +394,55 @@ class OrderService {
           return sum + (parseFloat(item.price) * item.quantity);
         }, 0);
 
+<<<<<<< HEAD
         let discountAmount = 0;
         if (orderJson.coupon.type === 'percent') {
           discountAmount = (subtotal * orderJson.coupon.discount) / 100;
         } else if (orderJson.coupon.type === 'fixed') {
           discountAmount = parseFloat(orderJson.coupon.discount);
+=======
+            if (!order) {
+                throw new HttpError(404, 'Pedido no encontrado');
+            }
+
+            // Validar que el pedido pueda ser cancelado
+            if (!['pending', 'paid', 'processing'].includes(order.status)) {
+                throw new HttpError(400, 'El pedido no puede ser cancelado en su estado actual');
+            }
+
+            // Liberar stock
+            const orderItems = await OrderItem.findAll({ where: { order_id: orderId }, transaction });
+            const releaseItems = orderItems.map(i => ({ product_id: item.product_id, quantity: item.quantity }));
+            await stockService.releaseStock(releaseItems, transaction);
+
+            await order.update({
+                status: 'cancelled',
+                cancelled_at: new Date(),
+                cancellation_reason: reason
+            }, { transaction });
+
+            // Crear registro en el historial
+            await OrderStatusHistory.create({
+                order_id: orderId,
+                status: 'cancelled',
+                notes: `Pedido cancelado. Razón: ${reason}`,
+                changed_by: userId
+            }, { transaction });
+
+            await transaction.commit();
+
+            const cancelledOrder = await this.getOrderById(orderId, userId, isAdmin);
+            
+            // Enviar email de cancelación (sin bloquear)
+            emailService.sendOrderCancelled(cancelledOrder).catch(err => 
+                console.error('Error enviando email de cancelación:', err)
+            );
+            
+            return cancelledOrder;
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+>>>>>>> c439414 (actualizacion Stock)
         }
 
         orderJson.coupon.discount_amount = parseFloat(discountAmount.toFixed(2));
