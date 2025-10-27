@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 import { authenticateToken, requireAdmin, requireCustomer } from '../middleware/auth.js';
 import HttpError from '../utils/HttpError.js';
-import { 
+import {
     getAllUsers,
     getUserById,
     createUser,
@@ -18,7 +18,7 @@ const router = express.Router();
 
 const CACHE_KEY_ALL = 'users:all';
 const CACHE_KEY_BY_ID = (id) => `users:${id}`;
-const CACHE_TTL = 300;
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 /**
  * @route GET /api/users
@@ -71,7 +71,7 @@ router.put('/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const user = await updateUser(req.params.id, req.body);
-        await invalidateCache([ CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id) ]);
+        await invalidateCache([CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id)]);
         res.status(200).json(user);
     })
 );
@@ -85,7 +85,7 @@ router.delete('/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const result = await deleteUser(req.params.id);
-        await invalidateCache([ CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id) ]);
+        await invalidateCache([CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id)]);
         res.status(200).json(result);
     })
 );
@@ -102,9 +102,9 @@ router.put('/:id/role',
         if (!role) {
             throw new HttpError(400, 'Role is required');
         }
-        
+
         const user = await updateUser(req.params.id, { role });
-        await invalidateCache([ CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id) ]);
+        await invalidateCache([CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id)]);
         res.status(200).json(user);
     })
 );

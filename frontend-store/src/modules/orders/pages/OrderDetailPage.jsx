@@ -245,49 +245,99 @@ export default function OrderDetailPage() {
             <CardContent>
               <div className="space-y-4">
                 {order.items &&
-                  order.items.map((item) => (
-                    <div
-                      key={item.order_item_id}
-                      className="flex items-center space-x-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-                    >
-                      <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Package className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                          {item.product?.name || "Producto"}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          SKU: {item.product?.sku || "N/A"}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Cantidad:{" "}
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              {item.quantity}
+                  order.items.map((item) => {
+                    const categoryColor =
+                      item.product?.category?.color || "#6366f1";
+                    const categoryEmoji = item.product?.category?.emoji;
+                    const hasEmoji =
+                      categoryEmoji && categoryEmoji.trim() !== "";
+
+                    return (
+                      <div
+                        key={item.order_item_id}
+                        className="flex items-center space-x-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                      >
+                        <div
+                          className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{
+                            backgroundColor: `${categoryColor}15`,
+                          }}
+                        >
+                          {hasEmoji ? (
+                            <span
+                              className="text-3xl"
+                              role="img"
+                              aria-label={
+                                item.product?.category?.name || "Categoría"
+                              }
+                            >
+                              {categoryEmoji}
                             </span>
+                          ) : (
+                            <Package
+                              className="h-8 w-8"
+                              style={{ color: categoryColor }}
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                            {item.product?.name || "Producto"}
+                          </h4>
+                          {item.product?.category && (
+                            <div
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium mt-1"
+                              style={{
+                                backgroundColor: `${categoryColor}20`,
+                                color: categoryColor,
+                              }}
+                            >
+                              {hasEmoji && (
+                                <span
+                                  role="img"
+                                  aria-label={item.product.category.name}
+                                >
+                                  {categoryEmoji}
+                                </span>
+                              )}
+                              {item.product.category.name}
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            SKU: {item.product?.sku || "N/A"}
                           </p>
-                          <span className="text-gray-400 dark:text-gray-600">
-                            ×
-                          </span>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {formatCurrency(item.price)}{" "}
-                            <span className="text-xs">c/u</span>
+                          <div className="flex items-center gap-3 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Cantidad:{" "}
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {item.quantity}
+                              </span>
+                            </p>
+                            <span className="text-gray-400 dark:text-gray-600">
+                              ×
+                            </span>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {formatCurrency(item.price)}{" "}
+                              <span className="text-xs">c/u</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            Subtotal
+                          </p>
+                          <p
+                            className="text-lg font-bold"
+                            style={{ color: categoryColor }}
+                          >
+                            {formatCurrency(
+                              parseFloat(item.price) * item.quantity
+                            )}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                          Subtotal
-                        </p>
-                        <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                          {formatCurrency(
-                            parseFloat(item.price) * item.quantity
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>

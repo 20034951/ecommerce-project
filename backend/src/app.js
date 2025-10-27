@@ -91,6 +91,7 @@ const startServer = async () => {
     const paymentMethodRoutes = (await import("./routes/paymentMethod.js"))
       .default;
     const homeRoutes = (await import("./routes/home.js")).default;
+    const stockRoutes = (await import("./routes/stock.js")).default;
     // ⚠️ OJO: NO importamos aquí ./routes/seed.js para evitar traer faker al boot
 
     // Montar rutas
@@ -108,6 +109,7 @@ const startServer = async () => {
     app.use("/api/reports", reportsRoutes);
     app.use("/api/payment-methods", paymentMethodRoutes);
     app.use("/api/home", homeRoutes);
+    app.use("/api/stock", stockRoutes);
 
     // Rutas de seed (solo en desarrollo)
     if (process.env.NODE_ENV === "development") {

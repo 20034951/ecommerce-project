@@ -3,6 +3,7 @@ import HttpError from "../utils/HttpError.js";
 import emailService from "./emailService.js";
 import { Op } from "sequelize";
 import couponService from "./couponService.js";
+import stockService from "./stockService.js";
 
 const {
   Order,
@@ -106,6 +107,18 @@ class OrderService {
 
       await OrderItem.bulkCreate(orderItems, { transaction });
 
+      // ✅ REDUCIR STOCK DE PRODUCTOS
+      await stockService.reduceStockForOrder(
+        order.order_id,
+        items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          name: item.name || `Producto #${item.productId}`
+        })),
+        userId,
+        transaction
+      );
+
       // Crear el primer registro en el historial
       await OrderStatusHistory.create(
         {
@@ -180,7 +193,14 @@ class OrderService {
             {
               model: Product,
               as: "product",
-              attributes: ["product_id", "name", "sku", "price"],
+              attributes: ["product_id", "name", "sku", "price", "category_id"],
+              include: [
+                {
+                  model: db.Category,
+                  as: "category",
+                  attributes: ["category_id", "name", "emoji", "color"],
+                },
+              ],
             },
           ],
         },
@@ -533,6 +553,29 @@ class OrderService {
           cancellation_reason: reason,
         },
         { transaction }
+      );
+
+      // ✅ REPONER STOCK DE PRODUCTOS
+      // Obtener los items de la orden para reponer el stock
+      const orderItems = await OrderItem.findAll({
+        where: { order_id: orderId },
+        include: [{
+          model: Product,
+          as: 'product',
+          attributes: ['product_id', 'name']
+        }],
+        transaction
+      });
+
+      await stockService.restoreStockForCancellation(
+        orderId,
+        orderItems.map(item => ({
+          productId: item.product_id,
+          quantity: item.quantity,
+          name: item.product?.name || `Producto #${item.product_id}`
+        })),
+        userId,
+        transaction
       );
 
       // Crear registro en el historial

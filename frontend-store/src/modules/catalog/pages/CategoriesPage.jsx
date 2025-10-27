@@ -133,50 +133,116 @@ export default function CategoriesPage() {
         {/* Grid de categorías */}
         {filteredCategories.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCategories.map((category) => (
-              <div
-                key={category.category_id}
-                onClick={() => handleCategoryClick(category.category_id)}
-                className="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors duration-200">
-                    <Layers className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                        {category.productCount || 0}
-                      </span>
+            {filteredCategories.map((category) => {
+              const categoryColor = category.color || "#6366f1"; // Color por defecto (indigo)
+              const hasEmoji = category.emoji && category.emoji.trim() !== "";
+
+              return (
+                <div
+                  key={category.category_id}
+                  onClick={() => handleCategoryClick(category.category_id)}
+                  className="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
+                  style={{
+                    borderColor: `${categoryColor}20`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = categoryColor;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${categoryColor}20`;
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className="p-3 rounded-lg group-hover:scale-110 transition-transform duration-200"
+                      style={{
+                        backgroundColor: `${categoryColor}15`,
+                      }}
+                    >
+                      {hasEmoji ? (
+                        <span
+                          className="text-3xl"
+                          role="img"
+                          aria-label={category.name}
+                        >
+                          {category.emoji}
+                        </span>
+                      ) : (
+                        <Layers
+                          className="w-6 h-6"
+                          style={{ color: categoryColor }}
+                        />
+                      )}
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-1 transition-all duration-200" />
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="flex items-center justify-center w-8 h-8 rounded-lg"
+                        style={{
+                          backgroundColor: `${categoryColor}20`,
+                        }}
+                      >
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: categoryColor }}
+                        >
+                          {category.productCount || 0}
+                        </span>
+                      </div>
+                      <ChevronRight
+                        className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:translate-x-1 transition-all duration-200"
+                        style={{
+                          color: categoryColor,
+                          opacity: 0.6,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = "0.6";
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <h3
+                    className="text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-200"
+                    style={{
+                      color: "inherit",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = categoryColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "inherit";
+                    }}
+                  >
+                    {category.name}
+                  </h3>
+
+                  {category.description && (
+                    <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+                      {category.description}
+                    </p>
+                  )}
+
+                  {!category.description && (
+                    <p className="text-gray-400 dark:text-gray-500 text-sm italic">
+                      Sin descripción
+                    </p>
+                  )}
+
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div
+                      className="flex items-center gap-2 text-sm font-medium"
+                      style={{ color: categoryColor }}
+                    >
+                      <Package className="w-4 h-4" />
+                      <span>Ver productos</span>
+                    </div>
                   </div>
                 </div>
-
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
-                  {category.name}
-                </h3>
-
-                {category.description && (
-                  <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
-                    {category.description}
-                  </p>
-                )}
-
-                {!category.description && (
-                  <p className="text-gray-400 dark:text-gray-500 text-sm italic">
-                    Sin descripción
-                  </p>
-                )}
-
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-sm font-medium">
-                    <Package className="w-4 h-4" />
-                    <span>Ver productos</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20">
