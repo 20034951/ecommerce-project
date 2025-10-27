@@ -211,6 +211,8 @@ export default function CatalogPage() {
   const categoryOptions = categories.map((cat) => ({
     value: cat.category_id.toString(),
     label: cat.name,
+    emoji: cat.emoji,
+    color: cat.color,
   }));
 
   // Formatear opciones de límite
@@ -337,12 +339,30 @@ export default function CatalogPage() {
                     const category = categoryOptions.find(
                       (cat) => cat.value === catId
                     );
+                    const categoryColor = category?.color || "#6366f1";
+                    const hasEmoji =
+                      category?.emoji && category.emoji.trim() !== "";
+
                     return (
                       <div
                         key={catId}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium"
+                        style={{
+                          backgroundColor: `${categoryColor}20`,
+                          color: categoryColor,
+                        }}
                       >
-                        <Layers className="w-3.5 h-3.5" />
+                        {hasEmoji ? (
+                          <span
+                            className="text-base"
+                            role="img"
+                            aria-label={category.label}
+                          >
+                            {category.emoji}
+                          </span>
+                        ) : (
+                          <Layers className="w-3.5 h-3.5" />
+                        )}
                         {category?.label}
                         <button
                           onClick={() =>
@@ -350,7 +370,17 @@ export default function CatalogPage() {
                               selectedCategories.filter((id) => id !== catId)
                             )
                           }
-                          className="ml-1 hover:bg-indigo-200 dark:hover:bg-indigo-800/50 rounded p-0.5 transition-colors"
+                          className="ml-1 rounded p-0.5 transition-colors"
+                          style={{
+                            backgroundColor: "transparent",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = `${categoryColor}30`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                          }}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>

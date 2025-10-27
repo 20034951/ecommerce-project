@@ -155,5 +155,15 @@ code {
 
 .scrollbar-hide {
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  /* Fallback for older browsers */
+  overflow: -moz-scrollbars-none;
+}
+
+/* Additional webkit scrollbar hiding for better compatibility */
+.scrollbar-hide::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  background: transparent;
 }

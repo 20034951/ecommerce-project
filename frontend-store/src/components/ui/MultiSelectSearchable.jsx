@@ -4,7 +4,7 @@ import { Search, X, ChevronDown, Check } from "lucide-react";
 /**
  * Componente de Multi-Select con buscador
  * @param {Object} props
- * @param {Array} props.options - Array de opciones [{ value, label, ... }]
+ * @param {Array} props.options - Array de opciones [{ value, label, emoji, color, ... }]
  * @param {Array} props.values - Array de valores seleccionados
  * @param {Function} props.onChange - Callback al cambiar selección (recibe array de valores)
  * @param {string} props.placeholder - Placeholder del input
@@ -98,20 +98,43 @@ export default function MultiSelectSearchable({
 
     return (
       <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-        {displayedOptions.map((option) => (
-          <span
-            key={option.value}
-            className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded text-xs font-medium"
-          >
-            {option.label}
-            <button
-              onClick={(e) => handleRemove(option.value, e)}
-              className="hover:bg-indigo-200 dark:hover:bg-indigo-800/60 rounded p-0.5 transition-colors"
+        {displayedOptions.map((option) => {
+          const optionColor = option.color || "#6366f1";
+          const hasEmoji = option.emoji && option.emoji.trim() !== "";
+
+          return (
+            <span
+              key={option.value}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium"
+              style={{
+                backgroundColor: `${optionColor}20`,
+                color: optionColor,
+              }}
             >
-              <X className="w-3 h-3" />
-            </button>
-          </span>
-        ))}
+              {hasEmoji && (
+                <span className="text-sm" role="img" aria-label={option.label}>
+                  {option.emoji}
+                </span>
+              )}
+              {option.label}
+              <span
+                onClick={(e) => handleRemove(option.value, e)}
+                className="rounded p-0.5 transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = `${optionColor}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                <X className="w-3 h-3" />
+              </span>
+            </span>
+          );
+        })}
         {remainingCount > 0 && (
           <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-medium">
             +{remainingCount}
@@ -144,12 +167,12 @@ export default function MultiSelectSearchable({
 
         <div className="flex items-center gap-1 flex-shrink-0">
           {values.length > 0 && !disabled && (
-            <div
+            <span
               onClick={handleClearAll}
-              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-            </div>
+            </span>
           )}
           <ChevronDown
             className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
@@ -182,6 +205,9 @@ export default function MultiSelectSearchable({
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => {
                 const isSelected = values.includes(option.value);
+                const optionColor = option.color || "#6366f1";
+                const hasEmoji = option.emoji && option.emoji.trim() !== "";
+
                 return (
                   <button
                     key={option.value}
@@ -193,14 +219,36 @@ export default function MultiSelectSearchable({
                       transition-colors duration-150
                       ${
                         isSelected
-                          ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium"
+                          ? "font-medium"
                           : "text-gray-900 dark:text-white"
                       }
                     `}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: `${optionColor}15`,
+                            color: optionColor,
+                          }
+                        : {}
+                    }
                   >
-                    <span>{option.label}</span>
+                    <span className="flex items-center gap-2">
+                      {hasEmoji && (
+                        <span
+                          className="text-lg"
+                          role="img"
+                          aria-label={option.label}
+                        >
+                          {option.emoji}
+                        </span>
+                      )}
+                      {option.label}
+                    </span>
                     {isSelected && (
-                      <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                      <Check
+                        className="w-4 h-4"
+                        style={{ color: optionColor }}
+                      />
                     )}
                   </button>
                 );

@@ -1,8 +1,23 @@
 import React from "react";
-import { Edit2, Eye, Package, AlertCircle, Tag } from "lucide-react";
+import {
+  Edit2,
+  Eye,
+  Package,
+  AlertCircle,
+  Tag,
+  History,
+  Settings,
+} from "lucide-react";
 import { Badge } from "../../../components/ui/Badge.jsx";
 
-export default function ProductsTable({ products, isLoading, onEdit, onView }) {
+export default function ProductsTable({
+  products,
+  isLoading,
+  onEdit,
+  onView,
+  onStockHistory,
+  onStockAdjust,
+}) {
   const formatPrice = (price) => {
     return new Intl.NumberFormat("es-GT", {
       style: "currency",
@@ -196,6 +211,20 @@ export default function ProductsTable({ products, isLoading, onEdit, onView }) {
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
+                    <button
+                      onClick={() => onStockHistory(product)}
+                      className="p-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-200"
+                      title="Historial de stock"
+                    >
+                      <History className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => onStockAdjust(product)}
+                      className="p-2 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-all duration-200"
+                      title="Ajustar stock"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -360,6 +389,20 @@ export default function ProductsTable({ products, isLoading, onEdit, onView }) {
               >
                 <Edit2 className="h-4 w-4" />
                 Editar
+              </button>
+              <button
+                onClick={() => onStockHistory(product)}
+                className="flex items-center justify-center gap-2 px-3 py-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 rounded-lg transition-all duration-200 text-sm font-medium"
+                title="Historial"
+              >
+                <History className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => onStockAdjust(product)}
+                className="flex items-center justify-center gap-2 px-3 py-2 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 rounded-lg transition-all duration-200 text-sm font-medium"
+                title="Ajustar"
+              >
+                <Settings className="h-4 w-4" />
               </button>
             </div>
           </div>

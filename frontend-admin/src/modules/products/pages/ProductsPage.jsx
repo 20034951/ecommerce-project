@@ -12,6 +12,8 @@ import ProductsTable from "../components/ProductsTable.jsx";
 import ProductFilters from "../components/ProductFilters.jsx";
 import ProductFormModal from "../components/ProductFormModal.jsx";
 import ProductDetailModal from "../components/ProductDetailModal.jsx";
+import StockHistoryModal from "../components/StockHistoryModal.jsx";
+import StockAdjustmentModal from "../components/StockAdjustmentModal.jsx";
 import { productsApi } from "../../../api/products.js";
 import { Alert } from "../../../components/ui/Alert.jsx";
 
@@ -37,6 +39,8 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showStockHistoryModal, setShowStockHistoryModal] = useState(false);
+  const [showStockAdjustModal, setShowStockAdjustModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -149,6 +153,21 @@ export default function ProductsPage() {
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
     setShowDetailModal(true);
+  };
+
+  const handleStockHistory = (product) => {
+    setSelectedProduct(product);
+    setShowStockHistoryModal(true);
+  };
+
+  const handleStockAdjust = (product) => {
+    setSelectedProduct(product);
+    setShowStockAdjustModal(true);
+  };
+
+  const handleStockAdjustSuccess = () => {
+    toast.success("Stock ajustado exitosamente");
+    loadProducts(); // Recargar productos para ver el nuevo stock
   };
 
   const handleSaveProduct = async (productData) => {
@@ -268,6 +287,8 @@ export default function ProductsPage() {
         isLoading={isLoading}
         onEdit={handleEditProduct}
         onView={handleViewProduct}
+        onStockHistory={handleStockHistory}
+        onStockAdjust={handleStockAdjust}
       />
 
       {/* Paginación */}
@@ -348,6 +369,25 @@ export default function ProductsPage() {
           setSelectedProduct(null);
         }}
         product={selectedProduct}
+      />
+
+      <StockHistoryModal
+        isOpen={showStockHistoryModal}
+        onClose={() => {
+          setShowStockHistoryModal(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct}
+      />
+
+      <StockAdjustmentModal
+        isOpen={showStockAdjustModal}
+        onClose={() => {
+          setShowStockAdjustModal(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct}
+        onSuccess={handleStockAdjustSuccess}
       />
     </div>
   );

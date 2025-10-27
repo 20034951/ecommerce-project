@@ -8,7 +8,7 @@ import { Op } from 'sequelize';
 
 const router = express.Router();
 const { Product, Category } = db;
-const CACHE_TTL = 300; // 5 min
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 // 🔧 Utilidad para construir una clave de caché determinística
 const buildCacheKeyFromQuery = (prefix, query = {}) => {
@@ -24,11 +24,11 @@ const CACHE_KEY_BY_ID = (id) => `product:${id}`;
 // ✅ Buscar productos (DEBE IR ANTES de /:id para evitar conflictos)
 router.get('/search', asyncHandler(async (req, res) => {
   const { q } = req.query;
-  
+
   if (!q || q.trim() === "") {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      message: "Debe proporcionar un término de búsqueda." 
+      message: "Debe proporcionar un término de búsqueda."
     });
   }
 
@@ -48,7 +48,7 @@ router.get('/search', asyncHandler(async (req, res) => {
       {
         model: Category,
         as: 'category',
-        attributes: ['category_id', 'name'],
+        attributes: ['category_id', 'name', 'emoji', 'color'],
         where: {
           [Op.or]: [
             { name: { [Op.like]: `%${searchTerm}%` } }
@@ -61,7 +61,7 @@ router.get('/search', asyncHandler(async (req, res) => {
     order: [['name', 'ASC']]
   });
 
-  res.status(200).json({ 
+  res.status(200).json({
     success: true,
     data: products,
     count: products.length

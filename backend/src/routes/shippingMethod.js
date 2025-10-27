@@ -11,7 +11,7 @@ const { ShippingMethod } = db;
 // Cache Keys
 const CACHE_KEY_ALL = 'shipping-methods:all';
 const CACHE_KEY_BY_ID = (id) => `shipping-method:${id}`;
-const CACHE_TTL = 300; // 5 minutos
+const CACHE_TTL = { admin: 5, store: 30 }; // 5 segundos para admin, 30 para store
 
 // ============================================
 // RUTAS PÚBLICAS
@@ -63,11 +63,11 @@ router.get('/admin/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const shippingMethod = await ShippingMethod.findByPk(req.params.id);
-        
+
         if (!shippingMethod) {
             throw new HttpError(404, 'Método de envío no encontrado');
         }
-        
+
         res.status(200).json(shippingMethod);
     })
 );
@@ -82,30 +82,30 @@ router.post('/admin',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, cost, region } = req.body;
-        
+
         // Validaciones
         if (!name || !cost) {
             throw new HttpError(400, 'Nombre y costo son requeridos');
         }
-        
+
         if (isNaN(cost) || parseFloat(cost) < 0) {
             throw new HttpError(400, 'El costo debe ser un número válido mayor o igual a 0');
         }
-        
+
         // Verificar si ya existe un método con el mismo nombre
         const existing = await ShippingMethod.findOne({ where: { name } });
         if (existing) {
             throw new HttpError(400, 'Ya existe un método de envío con ese nombre');
         }
-        
+
         const shippingMethod = await ShippingMethod.create({
             name,
             cost: parseFloat(cost),
             region: region || null
         });
-        
+
         await invalidateCache([CACHE_KEY_ALL]);
-        
+
         res.status(201).json(shippingMethod);
     })
 );
@@ -120,46 +120,46 @@ router.put('/admin/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const { name, cost, region } = req.body;
-        
+
         const shippingMethod = await ShippingMethod.findByPk(req.params.id);
-        
+
         if (!shippingMethod) {
             throw new HttpError(404, 'Método de envío no encontrado');
         }
-        
+
         // Validaciones
         if (name !== undefined && !name.trim()) {
             throw new HttpError(400, 'El nombre no puede estar vacío');
         }
-        
+
         if (cost !== undefined) {
             if (isNaN(cost) || parseFloat(cost) < 0) {
                 throw new HttpError(400, 'El costo debe ser un número válido mayor o igual a 0');
             }
         }
-        
+
         // Verificar si el nuevo nombre ya existe en otro método
         if (name && name !== shippingMethod.name) {
-            const existing = await ShippingMethod.findOne({ 
-                where: { 
+            const existing = await ShippingMethod.findOne({
+                where: {
                     name,
                     shipping_method_id: { [db.Sequelize.Op.ne]: req.params.id }
-                } 
+                }
             });
             if (existing) {
                 throw new HttpError(400, 'Ya existe otro método de envío con ese nombre');
             }
         }
-        
+
         // Actualizar campos
         if (name !== undefined) shippingMethod.name = name;
         if (cost !== undefined) shippingMethod.cost = parseFloat(cost);
         if (region !== undefined) shippingMethod.region = region || null;
-        
+
         await shippingMethod.save();
-        
+
         await invalidateCache([CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id)]);
-        
+
         res.status(200).json(shippingMethod);
     })
 );
@@ -174,27 +174,27 @@ router.delete('/admin/:id',
     requireAdmin,
     asyncHandler(async (req, res) => {
         const shippingMethod = await ShippingMethod.findByPk(req.params.id);
-        
+
         if (!shippingMethod) {
             throw new HttpError(404, 'Método de envío no encontrado');
         }
-        
+
         // Verificar si hay pedidos asociados
         const ordersCount = await db.Order.count({
             where: { shipping_method_id: req.params.id }
         });
-        
+
         if (ordersCount > 0) {
-            throw new HttpError(400, 
+            throw new HttpError(400,
                 `No se puede eliminar el método de envío porque tiene ${ordersCount} pedido(s) asociado(s)`
             );
         }
-        
+
         await shippingMethod.destroy();
-        
+
         await invalidateCache([CACHE_KEY_ALL, CACHE_KEY_BY_ID(req.params.id)]);
-        
-        res.status(200).json({ 
+
+        res.status(200).json({
             message: 'Método de envío eliminado exitosamente',
             shipping_method_id: parseInt(req.params.id)
         });
