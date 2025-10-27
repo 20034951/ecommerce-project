@@ -23,8 +23,18 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/all",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "all"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"all"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usersCount\": 10,\n  \"productsPerCategory\": 6,\n  \"ordersPerUser\": 5\n}"
 						},
 						"description": "Ejecuta todos los seeders en orden:\n1. Usuarios (12)\n2. Categorías (8)\n3. Productos (~50)\n4. Métodos de envío (4)\n5. Pedidos (60-100)\n\nGenera datos completos incluyendo pedidos con todos los estados y tracking numbers."
 					},
@@ -37,8 +47,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/users",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "users"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"users"
+							]
 						},
 						"description": "Crea solo usuarios y sus direcciones:\n- 1 Admin\n- 1 Usuario de prueba\n- 10 Clientes con datos de Faker"
 					},
@@ -51,8 +67,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/categories",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "categories"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"categories"
+							]
 						},
 						"description": "Crea solo categorías de productos (8 categorías)"
 					},
@@ -65,8 +87,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/products",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "products"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"products"
+							]
 						},
 						"description": "Crea productos en todas las categorías (~50 productos con datos realistas)"
 					},
@@ -79,8 +107,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/orders",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "orders"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"orders"
+							]
 						},
 						"description": "Crea pedidos con todos los estados:\n- Pending\n- Paid\n- Processing\n- Shipped (con tracking)\n- Delivered (con tracking)\n- Cancelled\n\nRequiere usuarios, productos y métodos de envío existentes."
 					},
@@ -93,8 +127,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/legacy",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "legacy"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"legacy"
+							]
 						},
 						"description": "Ejecuta el seeder antiguo (seedDatabase.js original)"
 					},
@@ -112,8 +152,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/seed/status",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "seed", "status"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"seed",
+								"status"
+							]
 						},
 						"description": "Obtiene estadísticas de los datos actuales en la base de datos:\n- Total de usuarios\n- Total de categorías\n- Total de productos\n- Total de pedidos\n- Total de items de pedidos\n- Total de historial de estados\n- etc."
 					},
@@ -140,8 +186,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						},
 						"description": "Login con usuario administrador creado por los seeders"
 					},
@@ -163,8 +215,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
 						},
 						"description": "Login con usuario de prueba creado por los seeders"
 					},

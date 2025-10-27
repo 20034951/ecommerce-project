@@ -62,7 +62,7 @@ export default class PexelsService {
                         } catch (error) {
                             reject(new Error(`Error al parsear respuesta: ${error.message}`));
                         }
-                    } else if (res.statusCode === 429) {
+                    } else if (res.statusCode === 429 || res.statusCode === 401) {
                         // Detectar "Too Many Requests"
                         this.rateLimitExceeded = true;
                         reject(new Error('RATE_LIMIT_EXCEEDED'));
