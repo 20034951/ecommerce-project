@@ -1,0 +1,77 @@
+{
+  "id": null,
+  "uid": "redis_dashboard",
+  "title": "Redis Metrics",
+  "schemaVersion": 36,
+  "version": 2,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Memory Usage",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "targets": [
+        { "expr": "redis_memory_used_bytes", "legendFormat": "Memory" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Keys Count",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum(redis_db_keys)",
+          "legendFormat": "Total Keys"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Commands Processed per Second",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total[5m])",
+          "legendFormat": "Commands/s"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Evicted Keys",
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "rate(redis_evicted_keys_total[5m])",
+          "legendFormat": "Evicted"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Hits & Misses",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "rate(redis_keyspace_hits_total[5m])",
+          "legendFormat": "Hits"
+        },
+        {
+          "expr": "rate(redis_keyspace_misses_total[5m])",
+          "legendFormat": "Misses"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis CPU Usage",
+      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "process_cpu_seconds_total{job=\"redis\"}",
+          "legendFormat": "CPU"
+        }
+      ]
+    }
+  ]
+}

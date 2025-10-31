@@ -4,21 +4,24 @@ CREATE DATABASE IF NOT EXISTS ecommerce;
 -- Use the database
 USE ecommerce;
 
--- Drop user if exists to avoid conflicts
-DROP USER IF EXISTS 'ecommerce_user'@'%';
+-- Create application user
+CREATE USER IF NOT EXISTS 'ecommerce_user'@'%' IDENTIFIED WITH mysql_native_password BY 'ecommerce_p4zzW0rD';
 
--- Create user and assigns permissions to connect from any host
--- Use mysql_native_password for MariaDB client compatibility
-CREATE USER 'ecommerce_user'@'%' IDENTIFIED WITH mysql_native_password BY 'ecommerce_p4zzW0rD';
-
--- Grant permissions over database
+-- Grant app user access to only this DB
 GRANT ALL PRIVILEGES ON ecommerce.* TO 'ecommerce_user'@'%';
+
+-- Create MySQL exporter user
+CREATE USER IF NOT EXISTS 'mysqld_exporter'@'%' IDENTIFIED WITH mysql_native_password BY 'exporter_pass';
+
+-- Exporter required perms
+GRANT PROCESS, REPLICATION CLIENT ON *.* TO 'mysqld_exporter'@'%';
+GRANT SELECT ON performance_schema.* TO 'mysqld_exporter'@'%';
+-- GRANT SELECT ON information_schema.* TO 'mysqld_exporter'@'%';
 
 -- Flush privileges
 FLUSH PRIVILEGES;
 
 -- Create tables according to the schema
-
 -- Usuarios
 CREATE TABLE IF NOT EXISTS user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,

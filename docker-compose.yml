@@ -1,4 +1,5 @@
 services:
+  # =======  DATABASE ======= #
   mysql:
     image: mysql:8.0
     container_name: ecommerce_mysql
@@ -6,10 +7,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3308:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -27,27 +26,39 @@ services:
     restart: always
     environment:
       PMA_HOST: mysql
-      PMA_PORT: 3306
+      PMA_PORT: ${DB_PORT:-3306}
     ports:
-      - "8080:80"
+      - "${PHPMYADMIN_PORT:-8080}:80"
     depends_on:
       mysql:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
     networks:
       - ecommerce_net
 
+  # =======  CACHE ======= #
   redis:
     image: redis:7.4-alpine
     container_name: ecommerce_redis
     restart: always
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
     networks:
       - ecommerce_net
 
+  # =======  BACKEND ======= #
   backend:
     build: ./backend
     container_name: ecommerce_backend
@@ -90,9 +101,18 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
     networks:
       - ecommerce_net
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=9100"
 
+  # =======  FRONTENDS ======= #
   frontend-store:
     build: ./frontend-store
     container_name: ecommerce_frontend_store
@@ -116,6 +136,11 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
     networks:
       - ecommerce_net
 
@@ -142,13 +167,143 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
     networks:
       - ecommerce_net
 
+  # =======  MONITORING STACK ======= #
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ecommerce_prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-32090}:9090"
+    networks:
+      - ecommerce_net
+      - monitoring
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: ecommerce_node_exporter
+    restart: always
+    pid: "host"
+    network_mode: host
+    ports:
+    - "${NODEEXPORTER_PORT:-32100}:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--web.listen-address=:9100'
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: ecommerce_cadvisor
+    restart: always
+    ports:
+      - "${CADVISOR_PORT:-32081}:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+    networks:
+      - monitoring
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: mysqld-exporter
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./monitoring/mysqld_exporter.cnf:/etc/mysql/my.cnf:ro
+    command:
+      - "--config.my-cnf=/etc/mysql/my.cnf"
+      - "--collect.global_status"
+      - "--collect.global_variables"
+      - "--collect.engine_innodb_status"
+      - "--collect.info_schema.tables"
+      - "--collect.info_schema.processlist"
+      - "--collect.info_schema.query_response_time"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9104/metrics"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "32104:9104"
+    networks:
+      - ecommerce_net
+      - monitoring
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    restart: always
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "${REDISEXPORTER_PORT:-32121}:9121"
+    depends_on:
+      - redis
+    networks:
+      - ecommerce_net
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ecommerce_grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
+    ports:
+      - "${GRAFANA_PORT:-32300}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - ecommerce_net
+      - monitoring
+    
+  
+# =======  VOLUMES ======= #
 volumes:
   mysql_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
 
+
+# =======  NETWORKS ======= #
 networks:
   ecommerce_net:
+    driver: bridge
+  monitoring:
     driver: bridge
