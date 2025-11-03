@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  - job_name: "mysql"
+    static_configs:
+      - targets: ["mysqld-exporter:9104"]
+
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
+  - job_name: "backend"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:${PORT}"]
+
+  - job_name: "frontend-admin"
+    metrics_path: /
+    static_configs:
+      - targets: ["frontend-admin:${VITE_STORE_PORT}"]
+
+  - job_name: "frontend-store"
+    metrics_path: /
+    static_configs:
+      - targets: ["frontend-store:${VITE_ADMIN_PORT}"]
